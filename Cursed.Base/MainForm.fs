@@ -6,6 +6,13 @@ open Eto.Drawing
 
 type MainForm() = 
     inherit Form()
+    let discoverButton = 
+        let button = new Button(Text = "Discover")
+        button.Click.Add(fun _ ->
+            let modpack = new Modpack()
+            modpack.DownloadZip "https://minecraft.curseforge.com/projects/all-the-mods" |> ignore
+        )
+        new TableCell(button)
     do 
         base.Title <- "Cursed"
         base.ClientSize <- new Size(900, 600)
@@ -14,7 +21,6 @@ type MainForm() =
         
         let urlInputLabel = new TableCell(new Label(Text = "Curse Modpack URL"))
         let urlInputTextBox = new TableCell(new TextBox(), true)
-        let discoverButton = new TableCell(new Button(Text = "Discover"))
         
         let urlInputRow = new TableRow([urlInputLabel; urlInputTextBox; discoverButton])
 
