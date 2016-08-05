@@ -1,0 +1,11 @@
+.vs/
+.paket/paket.exe
+packages/*
+Curesed.Base/bin
+Curesed.Base/obj
+Curesed.Desktop/bin
+Curesed.Desktop/obj
+/Cursed.Desktop/obj
+/Cursed.Desktop/bin/Debug
+/Cursed.Base/bin/Debug
+/Cursed.Base/obj/Debug
