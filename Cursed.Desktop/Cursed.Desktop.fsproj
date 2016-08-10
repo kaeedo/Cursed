@@ -55,13 +55,6 @@
     </Otherwise>
   </Choose>
   <Import Project="$(FSharpTargetsPath)" />
-  <Import Project="..\packages\Eto.Platform.Mac.Template.2.2.0\build\Eto.Platform.Mac.Template.targets" Condition="Exists('..\packages\Eto.Platform.Mac.Template.2.2.0\build\Eto.Platform.Mac.Template.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\Eto.Platform.Mac.Template.2.2.0\build\Eto.Platform.Mac.Template.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Eto.Platform.Mac.Template.2.2.0\build\Eto.Platform.Mac.Template.targets'))" />
-  </Target>
   <ItemGroup>
     <Content Include="Mac\README.txt">
       <Paket>True</Paket>

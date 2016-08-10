@@ -40,8 +40,6 @@
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\FSharp\Microsoft.Portable.FSharp.Targets" />
   <ItemGroup>
-    <Compile Include="State.fs" />
-    <Compile Include="BeatingHeart.fs" />
     <Compile Include="Modpack.fs" />
     <Compile Include="MainForm.fs" />
     <Compile Include="AssemblyInfo.fs" />
