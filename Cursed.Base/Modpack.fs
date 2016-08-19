@@ -1,11 +1,30 @@
 ﻿namespace Cursed.Base
 
 open System
+open System.Text
+//open HttpFs.Client
+
+type State =
+    { Link: string 
+      ZipLocation: string }
 
 type Modpack() =
-    member this.DownloadZip (url: string) = 
-        let packUrl = if url.EndsWith("/") then url.Substring(0, url.Length - 1) else url
-        0
+    let mutable cursedState = { Link = ""; ZipLocation = "" }
+    
+    member this.UpdateState(state) =
+        cursedState <- state
 
-    member this.Type (letter: string) =
-        0
+    member this.State
+        with get() = cursedState
+
+    member this.DownloadZip(link: string) =
+        let modpackLink = if link.EndsWith("/", StringComparison.OrdinalIgnoreCase) then link.Substring(0, link.Length) else link
+        let fileUrl = modpackLink + "/files/latest"
+        (*let request =
+            Request.createUrl Get fileUrl
+            |> Request.autoFollowRedirectsDisabled
+        let response =
+            job {
+                use! response = getResponse request
+            }*)
+        ()

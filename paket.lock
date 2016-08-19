@@ -13,6 +13,12 @@ NUGET
       Eto.Forms (2.2)
     Eto.Platform.Wpf (2.2)
       Eto.Forms (2.2)
+    FSharp.Core (4.0.0.1)
     FSharp.Data (2.3.2)
       Zlib.Portable (>= 1.11) - framework: portable-net45+sl5+win8, portable-net45+win8, portable-net45+win8+wp8+wpa81
+    Hopac (0.3.10)
+      FSharp.Core (>= 3.1.2.5)
+    Http.fs (3.0.7)
+      FSharp.Core (>= 3.1.2.5)
+      Hopac (>= 0.3.4)
     Zlib.Portable (1.11) - framework: portable-net45+sl5+win8, portable-net45+win8, portable-net45+win8+wp8+wpa81

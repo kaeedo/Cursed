@@ -8,3 +8,4 @@ nuget Eto.Platform.Mac.Template
 nuget Eto.Platform.Windows
 nuget Eto.Platform.Wpf
 nuget FSharp.Data
+nuget Http.fs

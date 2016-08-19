@@ -18,19 +18,19 @@ type MainForm() =
         let urlInputLabel = new Label(Text = "Curse Modpack URL")
         
         let urlInputTextBox = 
-            let onInput (keyEvent: KeyEventArgs) = 
-                modpack.Type <| keyEvent.Key.ToString() |> ignore
-
             let textBox = new TextBox()
 
-            Observable.subscribe onInput textBox.KeyDown |> ignore
+            let onInput _ = 
+                modpack.UpdateState { modpack.State with Link = textBox.Text }
+
+            Observable.subscribe onInput textBox.TextChanged |> ignore
             textBox
 
         let discoverButton = 
             let button = new Button(Text = "Discover")
 
             let addModpackLinkHander _ =
-                modpack.DownloadZip urlInputTextBox.Text |> ignore
+                modpack.DownloadZip modpack.State.Link |> ignore
 
             Observable.subscribe addModpackLinkHander button.MouseDown |> ignore
 
