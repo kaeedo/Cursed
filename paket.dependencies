@@ -10,3 +10,4 @@ nuget Eto.Platform.Wpf
 nuget FSharp.Data
 nuget PCLStorage
 nuget FSharp.Core
+nuget SharpZipLib.Portable

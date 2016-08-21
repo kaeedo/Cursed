@@ -24,4 +24,5 @@ NUGET
     PCLStorage (1.0.2)
       Microsoft.Bcl (>= 1.1.6) - framework: net10, net11, net20, net30, net35, net40, net40-full
       Microsoft.Bcl.Async (>= 1.0.165) - framework: net10, net11, net20, net30, net35, net40, net40-full
+    SharpZipLib.Portable (0.86.0.0003)
     Zlib.Portable (1.11) - framework: portable-net45+sl5+win8, portable-net45+win8, portable-net45+win8+wp8+wpa81
