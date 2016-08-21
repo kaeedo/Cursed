@@ -4,3 +4,5 @@ Eto.Platform.Mac
 Eto.Platform.Mac.Template
 Eto.Platform.Windows
 Eto.Platform.Wpf
+PCLStorage
+FSharp.Core
