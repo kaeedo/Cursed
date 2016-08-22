@@ -2,10 +2,9 @@
 
 open System
 open System.IO
+open System.IO.Compression
 open FSharp.Data
 open PCLStorage
-open ICSharpCode.SharpZipLib.Core
-open ICSharpCode.SharpZipLib.Zip
 
 type State =
     { Link: string 
@@ -13,27 +12,6 @@ type State =
 
 type Modpack() =
     let mutable cursedState = { Link = ""; ZipLocation = "" }
-
-    let openZip (stream: Stream) =
-        let zipInputStream = new ZipInputStream(stream)
-        let mutable zipEntry = zipInputStream.GetNextEntry()
-
-        while(zipEntry <> null) do
-            if zipEntry.IsDirectory then
-                zipEntry <- zipInputStream.GetNextEntry()
-            else
-                let entryFileName = zipEntry.Name
-                let buffer = Array.init 4096 (fun i -> byte(i * i))
-
-                let rootFolder = FileSystem.Current.LocalStorage
-                let folder = rootFolder.CreateFolderAsync("Pack", CreationCollisionOption.OpenIfExists) |> Async.AwaitTask |> Async.RunSynchronously
-                let file = folder.CreateFileAsync(entryFileName, CreationCollisionOption.ReplaceExisting)  |> Async.AwaitTask |> Async.RunSynchronously
-            
-                use streamWriter = file.OpenAsync(FileAccess.ReadAndWrite) |> Async.AwaitTask |> Async.RunSynchronously
-                StreamUtils.Copy(zipInputStream, streamWriter, buffer)
-                zipEntry <- zipInputStream.GetNextEntry()
-        ()
-    
     member this.UpdateState(state) =
         cursedState <- state
 
@@ -47,8 +25,26 @@ type Modpack() =
         async {
             let! response = Http.AsyncRequestStream(fileUrl)
 
-            let readZip = openZip response.ResponseStream
-            ()
+            let resposneStreamBytes = 
+                let stream = new MemoryStream()
+                response.ResponseStream.CopyTo(stream)
+                stream.ToArray()
+
+            let rootFolder = FileSystem.Current.LocalStorage
+            let zipName = response.ResponseUrl.Substring(response.ResponseUrl.LastIndexOf('/'))
+            let! file = rootFolder.CreateFileAsync(zipName, CreationCollisionOption.ReplaceExisting) |> Async.AwaitTask
+
+            use! stream = file.OpenAsync(FileAccess.ReadAndWrite) |> Async.AwaitTask
+            do! stream.WriteAsync(resposneStreamBytes, 0, resposneStreamBytes.Length) |> Async.AwaitTask
+
+            use archive = new ZipArchive(stream)
+            
+            archive.Entries
+            |> Seq.iter (fun entry ->
+                let zipEntryFile = rootFolder.CreateFileAsync(entry.Name, CreationCollisionOption.ReplaceExisting) |> Async.AwaitTask |> Async.RunSynchronously
+                use outputStream = zipEntryFile.OpenAsync(FileAccess.ReadAndWrite) |> Async.AwaitTask |> Async.RunSynchronously
+                entry.Open().CopyToAsync(outputStream) |> Async.AwaitTask |> Async.RunSynchronously
+            )
         }
         |> Async.RunSynchronously
         |> ignore

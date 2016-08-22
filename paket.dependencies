@@ -8,6 +8,7 @@ nuget Eto.Platform.Mac.Template
 nuget Eto.Platform.Windows
 nuget Eto.Platform.Wpf
 nuget FSharp.Data
+nuget Microsoft.Bcl.Build 1.0.14 framework: portable45-net45+win8+wp8+wpa81
+nuget Microsoft.Bcl.Compression 3.9.85 framework: portable45-net45+win8+wp8+wpa81
 nuget PCLStorage
 nuget FSharp.Core
-nuget SharpZipLib.Portable

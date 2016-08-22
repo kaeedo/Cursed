@@ -1,5 +1,6 @@
-﻿Eto.Forms
+Eto.Forms
 FSharp.Data
 PCLStorage
 FSharp.Core
-SharpZipLib.Portable
+Microsoft.Bcl.Build
+Microsoft.Bcl.Compression
