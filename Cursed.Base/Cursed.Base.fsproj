@@ -40,6 +40,8 @@
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\FSharp\Microsoft.Portable.FSharp.Targets" />
   <ItemGroup>
+    <None Include="SampleManifest.json" />
+    <Compile Include="ModpackDiscovery.fs" />
     <Compile Include="Modpack.fs" />
     <Compile Include="MainForm.fs" />
     <Compile Include="AssemblyInfo.fs" />
