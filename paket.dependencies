@@ -1,5 +1,6 @@
 source https://nuget.org/api/v2
 
+nuget FAKE
 nuget Eto.Forms
 nuget Eto.Platform.Gtk
 nuget Eto.Platform.Gtk3

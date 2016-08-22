@@ -13,6 +13,7 @@ NUGET
       Eto.Forms (2.2)
     Eto.Platform.Wpf (2.2)
       Eto.Forms (2.2)
+    FAKE (4.38.1)
     FSharp.Core (4.0.0.1)
     FSharp.Data (2.3.2)
       Zlib.Portable (>= 1.11) - framework: portable-net45+sl5+win8, portable-net45+win8, portable-net45+win8+wp8+wpa81

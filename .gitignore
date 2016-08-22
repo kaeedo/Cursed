@@ -1,5 +1,6 @@
 .vs/
 .paket/paket.exe
+.fake/
 packages/*
 Curesed.Base/bin
 Curesed.Base/obj
@@ -9,3 +10,5 @@ Curesed.Desktop/obj
 /Cursed.Desktop/bin/Debug
 /Cursed.Base/bin/Debug
 /Cursed.Base/obj/Debug
+
+Cursed.userprefs
