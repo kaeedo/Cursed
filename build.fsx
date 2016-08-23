@@ -1,4 +1,4 @@
-#r "packages/FAKE/tools/FakeLib.dll"
+#r "./packages/FAKE/tools/FakeLib.dll"
 
 open Fake
 
@@ -9,7 +9,10 @@ Target "Clean" (fun _ ->
 )
 
 Target "Build" (fun _ ->
-    MSBuildDebug buildDir "Build" ["./Cursed.sln"]
+    ensureDirectory buildDir
+
+    ["./Cursed.sln"]
+    |> MSBuildDebug buildDir "Build"
     |> Log "Output dir: "
 )
 
