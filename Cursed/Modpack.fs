@@ -2,8 +2,8 @@
 
 open System
 open System.IO
+open System.IO.Compression
 open FSharp.Data
-open PCLStorage
 
 type State =
     { Link: string 
@@ -11,8 +11,6 @@ type State =
 
 type Modpack() =
     let mutable cursedState = { Link = ""; ZipLocation = "" }
-
-    //let modpackDiscovery = new ModpackDiscovery()
 
     member this.UpdateState(state) =
         cursedState <- state
@@ -27,26 +25,9 @@ type Modpack() =
         async {
             let! response = Http.AsyncRequestStream(fileUrl)
 
-            use fileStream = File.Create(@"C:/tmp/test.zip")
-            response.ResponseStream.CopyTo(fileStream)
-
-            (*
-            let resposneStreamBytes = 
-                let stream = new MemoryStream()
-                response.ResponseStream.CopyTo(stream)
-                stream.ToArray()
-
-            let rootFolder = FileSystem.Current.LocalStorage
-            let zipName = response.ResponseUrl.Substring(response.ResponseUrl.LastIndexOf('/'))
-            let! file = rootFolder.CreateFileAsync(zipName, CreationCollisionOption.ReplaceExisting) |> Async.AwaitTask
-
-            use! stream = file.OpenAsync(FileAccess.ReadAndWrite) |> Async.AwaitTask
-            do! stream.WriteAsync(resposneStreamBytes, 0, resposneStreamBytes.Length) |> Async.AwaitTask*)
-
-            (*use archive = new ZipArchive(stream)
+            using (File.Create(@"C:/tmp/test.zip")) (fun fs -> response.ResponseStream.CopyTo(fs))
             
-            archive.Entries
-            |> Seq.iter modpackDiscovery.ExtractFile*)
+            ZipFile.ExtractToDirectory(@"C:/tmp/test.zip", @"C:/tmp/test")
         }
         |> Async.RunSynchronously
         |> ignore
