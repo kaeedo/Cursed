@@ -20,6 +20,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Cursed.Base", "Cursed.Base\
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Cursed.Desktop", "Cursed.Desktop\Cursed.Desktop.fsproj", "{0A770C73-1EEA-4715-8089-459ED75F3EE4}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Cursed", "Cursed\Cursed.fsproj", "{7618BBE1-DBD4-4059-8346-E70D71C1B6DD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -34,6 +36,10 @@ Global
 		{0A770C73-1EEA-4715-8089-459ED75F3EE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0A770C73-1EEA-4715-8089-459ED75F3EE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0A770C73-1EEA-4715-8089-459ED75F3EE4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7618BBE1-DBD4-4059-8346-E70D71C1B6DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7618BBE1-DBD4-4059-8346-E70D71C1B6DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7618BBE1-DBD4-4059-8346-E70D71C1B6DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7618BBE1-DBD4-4059-8346-E70D71C1B6DD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

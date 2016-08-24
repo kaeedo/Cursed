@@ -1,4 +1,4 @@
-﻿namespace Cursed.Base
+﻿namespace Cursed
 
 open System
 open System.IO
@@ -12,7 +12,7 @@ type State =
 type Modpack() =
     let mutable cursedState = { Link = ""; ZipLocation = "" }
 
-    let modpackDiscovery = new ModpackDiscovery()
+    //let modpackDiscovery = new ModpackDiscovery()
 
     member this.UpdateState(state) =
         cursedState <- state
@@ -27,6 +27,10 @@ type Modpack() =
         async {
             let! response = Http.AsyncRequestStream(fileUrl)
 
+            use fileStream = File.Create(@"C:/tmp/test.zip")
+            response.ResponseStream.CopyTo(fileStream)
+
+            (*
             let resposneStreamBytes = 
                 let stream = new MemoryStream()
                 response.ResponseStream.CopyTo(stream)
@@ -37,7 +41,7 @@ type Modpack() =
             let! file = rootFolder.CreateFileAsync(zipName, CreationCollisionOption.ReplaceExisting) |> Async.AwaitTask
 
             use! stream = file.OpenAsync(FileAccess.ReadAndWrite) |> Async.AwaitTask
-            do! stream.WriteAsync(resposneStreamBytes, 0, resposneStreamBytes.Length) |> Async.AwaitTask
+            do! stream.WriteAsync(resposneStreamBytes, 0, resposneStreamBytes.Length) |> Async.AwaitTask*)
 
             (*use archive = new ZipArchive(stream)
             

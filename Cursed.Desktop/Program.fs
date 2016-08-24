@@ -2,7 +2,7 @@
 module Program =
 
     open System
-    open Cursed.Base
+    open Cursed
 
     [<EntryPoint>]
     [<STAThread>]

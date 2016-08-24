@@ -2,7 +2,6 @@
 
 open System
 open System.IO
-open System.IO.Compression
 open FSharp.Data
 open PCLStorage
 
@@ -12,7 +11,7 @@ type ModpackDiscovery() =
         stream.CopyTo(memoryStream)
         memoryStream.ToArray()
 
-    member this.ExtractFile (entry: ZipArchiveEntry) =
+    (*member this.ExtractFile (entry: ZipArchiveEntry) =
         let rootFolder = FileSystem.Current.LocalStorage
         let fullName = entry.FullName
 
@@ -53,4 +52,4 @@ type ModpackDiscovery() =
 
             match filePath with
             | [one] -> createFile rootFolder entry
-            | ls -> createFile (getBottomDir ls.[..ls.Length - 2] rootFolder) entry
+            | ls -> createFile (getBottomDir ls.[..ls.Length - 2] rootFolder) entry*)
