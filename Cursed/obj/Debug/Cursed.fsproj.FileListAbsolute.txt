@@ -1,0 +1,16 @@
+C:\Dev\cursed\Cursed\bin\Debug\Cursed.XML
+C:\Dev\cursed\Cursed\bin\Debug\Cursed.dll
+C:\Dev\cursed\Cursed\bin\Debug\Cursed.pdb
+C:\Dev\cursed\Cursed\bin\Debug\Eto.dll
+C:\Dev\cursed\Cursed\bin\Debug\FSharp.Core.dll
+C:\Dev\cursed\Cursed\bin\Debug\Eto.xml
+C:\Dev\cursed\Cursed\bin\Debug\FSharp.Core.xml
+C:\Dev\cursed\Cursed\obj\Debug\Cursed.dll
+C:\Dev\cursed\Cursed\obj\Debug\Cursed.pdb
+C:\Dev\cursed\Cursed\bin\Debug\FSharp.Data.dll
+C:\Dev\cursed\Cursed\bin\Debug\PCLStorage.Abstractions.dll
+C:\Dev\cursed\Cursed\bin\Debug\PCLStorage.dll
+C:\Dev\cursed\Cursed\bin\Debug\FSharp.Data.pdb
+C:\Dev\cursed\Cursed\bin\Debug\FSharp.Data.xml
+C:\Dev\cursed\Cursed\bin\Debug\PCLStorage.Abstractions.xml
+C:\Dev\cursed\Cursed\bin\Debug\PCLStorage.xml

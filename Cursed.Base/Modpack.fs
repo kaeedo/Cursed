@@ -2,7 +2,6 @@
 
 open System
 open System.IO
-open System.IO.Compression
 open FSharp.Data
 open PCLStorage
 
@@ -40,10 +39,10 @@ type Modpack() =
             use! stream = file.OpenAsync(FileAccess.ReadAndWrite) |> Async.AwaitTask
             do! stream.WriteAsync(resposneStreamBytes, 0, resposneStreamBytes.Length) |> Async.AwaitTask
 
-            use archive = new ZipArchive(stream)
+            (*use archive = new ZipArchive(stream)
             
             archive.Entries
-            |> Seq.iter modpackDiscovery.ExtractFile
+            |> Seq.iter modpackDiscovery.ExtractFile*)
         }
         |> Async.RunSynchronously
         |> ignore
