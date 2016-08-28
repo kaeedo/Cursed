@@ -17,14 +17,4 @@ NUGET
     FSharp.Core (4.0.0.1)
     FSharp.Data (2.3.2)
       Zlib.Portable (>= 1.11) - framework: portable-net45+sl5+win8, portable-net45+win8, portable-net45+win8+wp8+wpa81
-    Microsoft.Bcl (1.1.10) - framework: net10, net11, net20, net30, net35, net40, net40-full
-      Microsoft.Bcl.Build (>= 1.0.14)
-    Microsoft.Bcl.Async (1.0.168) - framework: net10, net11, net20, net30, net35, net40, net40-full
-      Microsoft.Bcl (>= 1.1.8)
-    Microsoft.Bcl.Build (1.0.14) - import_targets: false, framework: net10, net11, net20, net30, net35, net40, net40-full, portable45-net45+win8+wp8+wpa81
-    Microsoft.Bcl.Compression (3.9.85) - framework: portable45-net45+win8+wp8+wpa81
-      Microsoft.Bcl.Build (>= 1.0.14)
-    PCLStorage (1.0.2)
-      Microsoft.Bcl (>= 1.1.6) - framework: net10, net11, net20, net30, net35, net40, net40-full
-      Microsoft.Bcl.Async (>= 1.0.165) - framework: net10, net11, net20, net30, net35, net40, net40-full
     Zlib.Portable (1.11) - framework: portable-net45+sl5+win8, portable-net45+win8, portable-net45+win8+wp8+wpa81

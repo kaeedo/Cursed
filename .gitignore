@@ -7,7 +7,7 @@ Cursed.Base/bin
 Cursed.Base/obj
 Cursed.Desktop/bin
 Cursed.Desktop/obj
-Cursed/bin/*
-Cursed/obj/*
+Cursed/bin
+Cursed/obj
 
 Cursed.userprefs

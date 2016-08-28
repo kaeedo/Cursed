@@ -1,8 +1,8 @@
-﻿namespace Cursed
+﻿namespace Cursed.Base
 open System.Reflection
 open System.Runtime.CompilerServices
 
-[<assembly: AssemblyTitle("Cursed")>]
+[<assembly: AssemblyTitle("Cursed.Base")>]
 [<assembly: AssemblyDescription("")>]
 [<assembly: AssemblyConfiguration("")>]
 [<assembly: AssemblyCompany("")>]

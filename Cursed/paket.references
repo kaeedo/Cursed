@@ -1,3 +1,7 @@
-﻿Eto.Forms
-FSharp.Data
+﻿Eto.Platform.Gtk
+Eto.Platform.Gtk3
+Eto.Platform.Mac
+Eto.Platform.Mac.Template
+Eto.Platform.Windows
+Eto.Platform.Wpf
 FSharp.Core

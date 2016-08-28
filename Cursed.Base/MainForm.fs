@@ -24,13 +24,18 @@ type MainForm() =
                 modpack.UpdateState { modpack.State with Link = textBox.Text }
 
             Observable.subscribe onInput textBox.TextChanged |> ignore
+
+            textBox.TextBinding.BindDataContext<Modpack>(fun (m: Modpack) ->
+                 m.Text
+            ) |> ignore
+
             textBox
 
         let discoverButton = 
             let button = new Button(Text = "Discover")
 
             let addModpackLinkHander _ =
-                modpack.DownloadZip modpack.State.Link |> ignore
+                modpack.DownloadZip "https://minecraft.curseforge.com/projects/all-the-mods/" |> ignore
 
             Observable.subscribe addModpackLinkHander button.MouseDown |> ignore
 
