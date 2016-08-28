@@ -25,9 +25,9 @@ type MainForm() =
 
             Observable.subscribe onInput textBox.TextChanged |> ignore
 
-            textBox.TextBinding.BindDataContext<Modpack>(fun (m: Modpack) ->
+            textBox.TextBinding.BindDataContext<Modpack>((fun (m: Modpack) ->
                  m.Text
-            ) |> ignore
+            ), DualBindingMode.OneWay) |> ignore
 
             textBox
 
@@ -49,6 +49,7 @@ type MainForm() =
         layout.Rows.Add(null)
 
         base.Content <- layout
+        base.DataContext <- modpack
 
         // create a few commands that can be used for the menu and toolbar
         //let clickMe = new Command(MenuText = "Click Me!", ToolBarText = "Click Me!")

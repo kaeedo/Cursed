@@ -35,23 +35,16 @@ type ModpackBase() =
 type Modpack() =
     inherit ModpackBase()
     let mutable cursedState = { Link = ""; ZipLocation = "" }
-    let mutable text = "";
 
     member this.UpdateState state =
         cursedState <- state
-        this.OnPropertyChanged("Text")
+        this.OnPropertyChanged(<@ this.Text @>)
 
     member this.State
         with get() = cursedState
-        and set(value) =
-            cursedState <- value
-            this.OnPropertyChanged(<@ this.State @>)
 
     member this.Text
-        with get() = text
-        and set(value) = 
-            text <- value
-            this.OnPropertyChanged(<@ this.Text @>)
+        with get() = cursedState.ZipLocation
 
     member this.DownloadZip (link: string) =
         let modpackLink = if link.EndsWith("/", StringComparison.OrdinalIgnoreCase) then link.Substring(0, link.Length) else link
@@ -67,7 +60,5 @@ type Modpack() =
         }
         |> Async.RunSynchronously
         |> ignore*)
-        
-        this.State <- { this.State with ZipLocation = @"C:/tmp/test.zip"}
-        this.Text <- "wwweee"
+        this.UpdateState { cursedState with State.ZipLocation = "wqdqwdq d" }
         ()
