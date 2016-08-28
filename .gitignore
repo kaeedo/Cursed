@@ -3,13 +3,11 @@
 .fake/
 output/
 packages/*
-Curesed.Base/bin
-Curesed.Base/obj
-Curesed.Desktop/bin
-Curesed.Desktop/obj
-/Cursed.Desktop/obj
-/Cursed.Desktop/bin/Debug
-/Cursed.Base/bin/Debug
-/Cursed.Base/obj/Debug
+Cursed.Base/bin
+Cursed.Base/obj
+Cursed.Desktop/bin
+Cursed.Desktop/obj
+Cursed/bin/*
+Cursed/obj/*
 
 Cursed.userprefs

@@ -1,6 +1,7 @@
-﻿namespace Cursed
+﻿namespace Cursed.Base
 
 open System
+open System.Windows
 open Eto.Forms
 open Eto.Drawing
 
@@ -11,7 +12,6 @@ type MainForm() =
     do 
         base.Title <- "Cursed"
         base.ClientSize <- new Size(900, 600)
-        
 
         let layout = new TableLayout()
         
@@ -24,13 +24,18 @@ type MainForm() =
                 modpack.UpdateState { modpack.State with Link = textBox.Text }
 
             Observable.subscribe onInput textBox.TextChanged |> ignore
+
+            textBox.TextBinding.BindDataContext<Modpack>(fun (m: Modpack) ->
+                 m.Text
+            ) |> ignore
+
             textBox
 
         let discoverButton = 
             let button = new Button(Text = "Discover")
 
             let addModpackLinkHander _ =
-                modpack.DownloadZip modpack.State.Link |> ignore
+                modpack.DownloadZip "https://minecraft.curseforge.com/projects/all-the-mods/" |> ignore
 
             Observable.subscribe addModpackLinkHander button.MouseDown |> ignore
 
@@ -45,9 +50,7 @@ type MainForm() =
 
         base.Content <- layout
 
-        // create a few commands that can be used for the menu and toolbar
-        //let clickMe = new Command(MenuText = "Click Me!", ToolBarText = "Click Me!")
-        //clickMe.Executed.Add(fun e -> ignore(MessageBox.Show(this, "I was clicked!")))
+        base.DataContext <- modpack
 
         let quitCommand = new Command(MenuText = "Quit")
         quitCommand.Shortcut <- Application.Instance.CommonModifier ||| Keys.Q

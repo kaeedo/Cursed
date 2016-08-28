@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+VisualStudioVersion = 14.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".paket", ".paket", "{0BDC8688-889C-4154-871A-AB5C3286AED6}"
 	ProjectSection(SolutionItems) = preProject
@@ -16,9 +16,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		readme.md = readme.md
 	EndProjectSection
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Cursed.Desktop", "Cursed.Desktop\Cursed.Desktop.fsproj", "{0A770C73-1EEA-4715-8089-459ED75F3EE4}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Cursed", "Cursed.Desktop\Cursed.fsproj", "{0A770C73-1EEA-4715-8089-459ED75F3EE4}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Cursed", "Cursed\Cursed.fsproj", "{7618BBE1-DBD4-4059-8346-E70D71C1B6DD}"
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Cursed.Base", "Cursed\Cursed.Base.fsproj", "{7618BBE1-DBD4-4059-8346-E70D71C1B6DD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
