@@ -9,10 +9,6 @@ open System.IO
 open System.IO.Compression
 open FSharp.Data
 
-type State =
-    { Link: string 
-      ZipLocation: string }
-
 type ModpackBase() =
     let propertyChanged = new Event<_, _>()
     let toPropName (query: Expr) =
@@ -34,19 +30,38 @@ type ModpackBase() =
 
 type Modpack() =
     inherit ModpackBase()
-    let mutable cursedState = { Link = ""; ZipLocation = "" }
+
+    let updateState state message =
+        match message with
+        | UrlInput t -> { state with UrlInput = t }
+        | ExtractLocation t -> { state with ExtractLocation = t }
+        | None -> state
+
+    let inboxHandler (inbox: MailboxProcessor<StateUpdate>) =
+        let rec messageLoop oldState = 
+            async {
+                match oldState with
+                | NewState s ->
+                    let! message = inbox.Receive()
+                    let newState = updateState s message
+                    return! messageLoop (NewState newState)
+                | DownloadZip ->
+                    inboxoldState
+            }
+
+        messageLoop (NewState { UrlInput = ""; ExtractLocation = "" })
+
+    member this.StateAgent = 
+        MailboxProcessor.Start(inboxHandler)
 
     member this.UpdateState state =
-        cursedState <- state
         this.OnPropertyChanged(<@ this.Text @>)
 
-    member this.State
-        with get() = cursedState
+    member this.UrlInput
+        with get() = cursedState.ExtractLocation
 
-    member this.Text
-        with get() = cursedState.ZipLocation
-
-    member this.DownloadZip (link: string) =
+    member this.DownloadZip =
+        let link = cursedState.UrlInput
         let modpackLink = if link.EndsWith("/", StringComparison.OrdinalIgnoreCase) then link.Substring(0, link.Length) else link
         let fileUrl = modpackLink + "/files/latest"
         
@@ -60,5 +75,5 @@ type Modpack() =
         }
         |> Async.RunSynchronously
         |> ignore*)
-        this.UpdateState { cursedState with State.ZipLocation = "wqdqwdq d" }
+        this.UpdateState { cursedState with AppState.ExtractLocation = "wqdqwdq d" }
         ()

@@ -21,7 +21,8 @@ type MainForm() =
             let textBox = new TextBox()
 
             let onInput _ = 
-                modpack.UpdateState { modpack.State with Link = textBox.Text }
+                modpack.StateAgent.Post (UrlInput textBox.Text)
+                //modpack.UpdateState { modpack.State with Link = textBox.Text }
 
             Observable.subscribe onInput textBox.TextChanged |> ignore
 
