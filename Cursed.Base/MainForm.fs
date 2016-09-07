@@ -1,6 +1,7 @@
 ﻿namespace Cursed.Base
 
 open System
+open System.Threading
 open Eto.Forms
 open Eto.Drawing
 
@@ -19,11 +20,10 @@ type MainForm() =
         
         let urlInputTextBox = 
             let textBox = new TextBox()
-
+            
             let onInput _ = 
-                modpack.StateAgent.Post (UrlInput textBox.Text)
-                //modpack.UpdateState { modpack.State with Link = textBox.Text }
-
+                modpack.StateAgent.Post (UpdateLink textBox.Text)
+            
             Observable.subscribe onInput textBox.TextChanged |> ignore
 
             textBox.TextBinding.BindDataContext<Modpack>((fun (m: Modpack) ->
@@ -36,7 +36,8 @@ type MainForm() =
             let button = new Button(Text = "Discover")
 
             let addModpackLinkHander _ =
-                modpack.DownloadZip "https://minecraft.curseforge.com/projects/all-the-mods/" |> ignore
+                modpack.StateAgent.Post (UpdateLink "herp derp")
+                //modpack.DownloadZip "https://minecraft.curseforge.com/projects/all-the-mods/" |> ignore
 
             Observable.subscribe addModpackLinkHander button.MouseDown |> ignore
 

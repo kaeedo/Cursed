@@ -1,14 +1,10 @@
 ﻿namespace Cursed.Base
 
-type StateUpdate =
-| UrlInput of string
-| ExtractLocation of string
-| None
-
 type AppState =
-    { UrlInput: string 
+    { ModpackLink: string 
       ExtractLocation: string }
 
 type StateMessage =
-| NewState of AppState
+| UpdateLink of string
 | DownloadZip
+//| None

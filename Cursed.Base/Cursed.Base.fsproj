@@ -52,6 +52,7 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="State.fs" />
     <Compile Include="Modpack.fs" />
     <Compile Include="MainForm.fs" />
     <None Include="paket.references" />

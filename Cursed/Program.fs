@@ -2,6 +2,7 @@
 module Program =
 
     open System
+    open System.Threading
     open Cursed.Base
 
     [<EntryPoint>]
