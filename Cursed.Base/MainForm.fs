@@ -5,9 +5,9 @@ open System.Threading
 open Eto.Forms
 open Eto.Drawing
 
-type MainForm() = 
+type MainForm(app: Application) = 
     inherit Form()
-    let modpack = new Modpack()
+    let modpack = new Modpack(app)
 
     do 
         base.Title <- "Cursed"

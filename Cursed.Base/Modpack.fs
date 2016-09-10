@@ -9,7 +9,7 @@ open System.IO
 open System.IO.Compression
 open System.Threading
 open FSharp.Data
-open Eto.Threading
+open Eto.Forms
 
 type ModpackBase() =
     let propertyChanged = new Event<_, _>()
@@ -24,46 +24,46 @@ type ModpackBase() =
 
     abstract member OnPropertyChanged: string -> unit
     default this.OnPropertyChanged (propertyName: string) =
-        //http://stackoverflow.com/questions/33379559/f-sta-thread-async
         propertyChanged.Trigger(this, new PropertyChangedEventArgs(propertyName))
 
     member this.OnPropertyChanged (expr: Expr) =
         let propName = toPropName(expr)
         this.OnPropertyChanged(propName)
 
-type Modpack() as modpack =
+type Modpack(app: Application) as modpack =
     inherit ModpackBase()
-    let a = Eto.Threading.Thread.MainThread
-
     let mutable text = "";
 
     let updateState state message =
         match message with
         | UpdateLink link -> 
             let newState = { state with ModpackLink = link }
-            modpack.Text <- newState.ModpackLink
+            
+            app.Invoke (fun () -> modpack.Text <- newState.ModpackLink)
+            
             newState
         | _ -> state
 
-    let inboxHandler (inbox: MailboxProcessor<StateMessage>) =
-        let rec messageLoop oldState = 
-            async {
-                let! message = inbox.Receive()
-                SynchronizationContext.SetSynchronizationContext(new SynchronizationContext())
-                let syncContext = SynchronizationContext.Current
+    let updateLoop =
+        let inboxHandler (inbox: MailboxProcessor<StateMessage>) =
+            let rec messageLoop oldState = 
+                async {
+                    let! message = inbox.Receive()
 
-                match message with
-                | UpdateLink link ->
-                    let newState = updateState oldState message
-                    return! messageLoop newState
-                | DownloadZip ->
-                    ()
-            }
+                    match message with
+                    | UpdateLink link ->
+                        let newState = updateState oldState message
 
-        messageLoop { ModpackLink = ""; ExtractLocation = "" }
+                        return! messageLoop newState
+                    | DownloadZip ->
+                        return ()
+                }
 
-    member modpack.StateAgent = 
+            messageLoop { ModpackLink = ""; ExtractLocation = "" }
+
         MailboxProcessor.Start(inboxHandler)
+
+    member modpack.StateAgent = updateLoop
 
     member modpack.Text
         with get() = text
