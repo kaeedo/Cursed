@@ -13,8 +13,17 @@ type MainForm(app: Application) =
         base.Title <- "Cursed"
         base.ClientSize <- new Size(900, 600)
         
-
         let layout = new TableLayout()
+
+        let openSelectFolderButton = 
+            let button = new Button(Text = "Extract Location")
+            let selectFolderDialog = new SelectFolderDialog()
+            let openSelectFolderHandler _ =
+                selectFolderDialog.ShowDialog(layout.ParentWindow) |> ignore
+            
+            Observable.subscribe openSelectFolderHandler button.MouseDown |> ignore
+
+            button
         
         let urlInputLabel = new Label(Text = "Curse Modpack URL")
         
@@ -35,11 +44,11 @@ type MainForm(app: Application) =
         let discoverButton = 
             let button = new Button(Text = "Discover")
 
-            let addModpackLinkHander _ =
-                modpack.StateAgent.Post (UpdateLink "herp derp")
+            let addModpackLinkHandler _ =
+                modpack.StateAgent.Post DownloadZip
                 //modpack.DownloadZip "https://minecraft.curseforge.com/projects/all-the-mods/" |> ignore
 
-            Observable.subscribe addModpackLinkHander button.MouseDown |> ignore
+            Observable.subscribe addModpackLinkHandler button.MouseDown |> ignore
 
             button
 
@@ -47,6 +56,7 @@ type MainForm(app: Application) =
 
         layout.Padding <- new Padding(10)
         layout.Spacing <- new Size(5, 5)
+        layout.Rows.Add(new TableRow([new TableCell(openSelectFolderButton)]))
         layout.Rows.Add(urlInputRow)
         layout.Rows.Add(null)
 

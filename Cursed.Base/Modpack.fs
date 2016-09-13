@@ -32,17 +32,7 @@ type ModpackBase() =
 
 type Modpack(app: Application) as modpack =
     inherit ModpackBase()
-    let mutable text = "";
-
-    let updateState state message =
-        match message with
-        | UpdateLink link -> 
-            let newState = { state with ModpackLink = link }
-            
-            app.Invoke (fun () -> modpack.Text <- newState.ModpackLink)
-            
-            newState
-        | _ -> state
+    let mutable text = ""
 
     let updateLoop =
         let inboxHandler (inbox: MailboxProcessor<StateMessage>) =
@@ -52,11 +42,12 @@ type Modpack(app: Application) as modpack =
 
                     match message with
                     | UpdateLink link ->
-                        let newState = updateState oldState message
-
+                        let newState = { oldState with ModpackLink = link }
+                        //app.Invoke (fun () -> modpack.Text <- newState.ModpackLink)
                         return! messageLoop newState
                     | DownloadZip ->
-                        return ()
+                        modpack.DownloadZip oldState.ModpackLink oldState.ExtractLocation |> ignore
+                        return! messageLoop oldState
                 }
 
             messageLoop { ModpackLink = ""; ExtractLocation = "" }
@@ -71,20 +62,26 @@ type Modpack(app: Application) as modpack =
             text <- value
             modpack.OnPropertyChanged <@ modpack.Text @>
 
-    (*member this.DownloadZip =
-        let link = cursedState.UrlInput
+    member modpack.DownloadZip link location =
         let modpackLink = if link.EndsWith("/", StringComparison.OrdinalIgnoreCase) then link.Substring(0, link.Length) else link
         let fileUrl = modpackLink + "/files/latest"
         
-        (*async {
-            let! response = Http.AsyncRequestStream(fileUrl)
-            
+        let homePath =
+            match Environment.OSVersion.Platform with
+            | PlatformID.Unix -> Environment.GetEnvironmentVariable("HOME")
+            | PlatformID.MacOSX -> Environment.GetEnvironmentVariable("HOME")
+            | _ -> Environment.GetEnvironmentVariable("%HOMEDRIVE%%HOMEPATH%")
+        
+        modpack.Text <- homePath
 
-            using (File.Create(@"C:/tmp/test.zip")) (fun fs -> response.ResponseStream.CopyTo(fs))
+        async {
+            let! response = Http.AsyncRequestStream(fileUrl)
+
+            let zipLocation = sprintf "%s/test.zip" homePath
+            using (File.Create(zipLocation)) (fun fs -> response.ResponseStream.CopyTo(fs))
             
-            ZipFile.ExtractToDirectory(@"C:/tmp/test.zip", @"C:/tmp/test")
+            ZipFile.ExtractToDirectory(zipLocation, "/tmp")
         }
         |> Async.RunSynchronously
-        |> ignore*)
-        //this.UpdateState { cursedState with AppState.ExtractLocation = "wqdqwdq d" }
-        ()*)
+        |> ignore
+        ()
