@@ -1,7 +1,6 @@
 ﻿namespace Cursed.Base
 
 open System
-open System.Threading
 open Eto.Forms
 open Eto.Drawing
 
@@ -26,7 +25,6 @@ type MainForm(app: Application) =
 
             let addModpackLinkHandler _ =
                 modpack.StateAgent.Post DownloadZip
-                //modpack.DownloadZip "https://minecraft.curseforge.com/projects/all-the-mods/" |> ignore
 
             Observable.subscribe addModpackLinkHandler button.MouseDown |> ignore
             button
@@ -68,10 +66,6 @@ type MainForm(app: Application) =
 
         base.Content <- layout
         base.DataContext <- modpack
-
-        // create a few commands that can be used for the menu and toolbar
-        //let clickMe = new Command(MenuText = "Click Me!", ToolBarText = "Click Me!")
-        //clickMe.Executed.Add(fun e -> ignore(MessageBox.Show(this, "I was clicked!")))
 
         let quitCommand = new Command(MenuText = "Quit")
         quitCommand.Shortcut <- Application.Instance.CommonModifier ||| Keys.Q

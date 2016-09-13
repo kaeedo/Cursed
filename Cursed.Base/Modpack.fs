@@ -75,9 +75,7 @@ type Modpack(app: Application) as modpack =
             match Environment.OSVersion.Platform with
             | PlatformID.Unix -> Environment.GetEnvironmentVariable("HOME")
             | PlatformID.MacOSX -> Environment.GetEnvironmentVariable("HOME")
-            | _ -> Environment.GetEnvironmentVariable("%HOMEDRIVE%%HOMEPATH%")
-        
-        modpack.ExtractLocation <- homePath
+            | _ -> Environment.GetFolderPath(Environment.SpecialFolder.Personal)
 
         async {
             let! response = Http.AsyncRequestStream(fileUrl)
@@ -85,7 +83,7 @@ type Modpack(app: Application) as modpack =
             let zipLocation = sprintf "%s/test.zip" homePath
             using (File.Create(zipLocation)) (fun fs -> response.ResponseStream.CopyTo(fs))
             
-            ZipFile.ExtractToDirectory(zipLocation, "/tmp")
+            ZipFile.ExtractToDirectory(zipLocation, "/.cursedTemp")
         }
         |> Async.RunSynchronously
         |> ignore
