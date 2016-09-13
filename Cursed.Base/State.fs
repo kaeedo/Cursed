@@ -5,6 +5,7 @@ type AppState =
       ExtractLocation: string }
 
 type StateMessage =
-| UpdateLink of string
+| UpdateModpackLink of string
+| SetExtractLocation of string
 | DownloadZip
-//| None
+| None

@@ -32,7 +32,7 @@ type ModpackBase() =
 
 type Modpack(app: Application) as modpack =
     inherit ModpackBase()
-    let mutable text = ""
+    let mutable extractLocation = ""
 
     let updateLoop =
         let inboxHandler (inbox: MailboxProcessor<StateMessage>) =
@@ -41,13 +41,18 @@ type Modpack(app: Application) as modpack =
                     let! message = inbox.Receive()
 
                     match message with
-                    | UpdateLink link ->
+                    | UpdateModpackLink link ->
                         let newState = { oldState with ModpackLink = link }
-                        //app.Invoke (fun () -> modpack.Text <- newState.ModpackLink)
+                        return! messageLoop newState
+                    | SetExtractLocation location ->
+                        let newState = { oldState with ExtractLocation = location}
+                        app.Invoke (fun () -> modpack.ExtractLocation <- newState.ExtractLocation)
+
                         return! messageLoop newState
                     | DownloadZip ->
                         modpack.DownloadZip oldState.ModpackLink oldState.ExtractLocation |> ignore
                         return! messageLoop oldState
+                    | None -> ()
                 }
 
             messageLoop { ModpackLink = ""; ExtractLocation = "" }
@@ -56,11 +61,11 @@ type Modpack(app: Application) as modpack =
 
     member modpack.StateAgent = updateLoop
 
-    member modpack.Text
-        with get() = text
+    member modpack.ExtractLocation
+        with get() = extractLocation
         and private set(value) =
-            text <- value
-            modpack.OnPropertyChanged <@ modpack.Text @>
+            extractLocation <- value
+            modpack.OnPropertyChanged <@ modpack.ExtractLocation @>
 
     member modpack.DownloadZip link location =
         let modpackLink = if link.EndsWith("/", StringComparison.OrdinalIgnoreCase) then link.Substring(0, link.Length) else link
@@ -72,7 +77,7 @@ type Modpack(app: Application) as modpack =
             | PlatformID.MacOSX -> Environment.GetEnvironmentVariable("HOME")
             | _ -> Environment.GetEnvironmentVariable("%HOMEDRIVE%%HOMEPATH%")
         
-        modpack.Text <- homePath
+        modpack.ExtractLocation <- homePath
 
         async {
             let! response = Http.AsyncRequestStream(fileUrl)
