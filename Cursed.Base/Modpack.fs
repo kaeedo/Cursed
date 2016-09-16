@@ -50,7 +50,9 @@ type Modpack(app: Application) as modpack =
 
                         return! messageLoop newState
                     | DownloadZip ->
-                        modpack.DownloadZip oldState.ModpackLink oldState.ExtractLocation |> ignore
+                        //CATCH AND HANDLE EXCEPTIONS
+                        modpack.DownloadZip oldState.ModpackLink oldState.ExtractLocation
+                        
                         return! messageLoop oldState
                     | None -> ()
                 }
@@ -77,14 +79,17 @@ type Modpack(app: Application) as modpack =
             | PlatformID.MacOSX -> Environment.GetEnvironmentVariable("HOME")
             | _ -> Environment.GetFolderPath(Environment.SpecialFolder.Personal)
 
-        async {
-            let! response = Http.AsyncRequestStream(fileUrl)
+        let response = Http.RequestStream(fileUrl)
 
-            let zipLocation = sprintf "%s/test.zip" homePath
-            using (File.Create(zipLocation)) (fun fs -> response.ResponseStream.CopyTo(fs))
-            
-            ZipFile.ExtractToDirectory(zipLocation, "/.cursedTemp")
-        }
-        |> Async.RunSynchronously
-        |> ignore
-        ()
+        //get fileName from download
+
+        let zipLocation = Path.Combine([|homePath; ".cursedTemp"; "test.zip"|])
+
+        let fileInfo = new FileInfo(zipLocation)
+        fileInfo.Directory.Create()
+
+        using(File.Create(zipLocation)) (fun fs -> response.ResponseStream.CopyTo(fs))
+
+        //add subdirectory based on zipname
+        ZipFile.ExtractToDirectory(zipLocation, location)
+        fileInfo.Delete()
