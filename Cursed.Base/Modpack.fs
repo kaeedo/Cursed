@@ -34,6 +34,9 @@ type Modpack(app: Application) as modpack =
     inherit ModpackBase()
     let mutable extractLocation = ""
 
+    let discoverModpack location =
+        location
+
     let updateLoop =
         let inboxHandler (inbox: MailboxProcessor<StateMessage>) =
             let rec messageLoop oldState = 
@@ -51,15 +54,24 @@ type Modpack(app: Application) as modpack =
                         return! messageLoop newState
                     | DownloadZip ->
                         //CATCH AND HANDLE EXCEPTIONS
-                        modpack.DownloadZip oldState.ModpackLink oldState.ExtractLocation
+                        do modpack.DownloadZip oldState.ModpackLink oldState.ExtractLocation |> Async.RunSynchronously
                         
+                        let modlistHtml = Path.Combine([|oldState.ExtractLocation; "modlist.html"|])
+
+                        let! html = HtmlDocument.AsyncLoad(modlistHtml)
+
                         return! messageLoop oldState
                     | None -> ()
                 }
 
             messageLoop { ModpackLink = ""; ExtractLocation = "" }
 
-        MailboxProcessor.Start(inboxHandler)
+        let agent = MailboxProcessor.Start(inboxHandler)
+        agent.Error.Add(fun ex ->
+            match ex with
+            | e -> failwith e.Message
+        )
+        agent
 
     member modpack.StateAgent = updateLoop
 
@@ -70,26 +82,29 @@ type Modpack(app: Application) as modpack =
             modpack.OnPropertyChanged <@ modpack.ExtractLocation @>
 
     member modpack.DownloadZip link location =
-        let modpackLink = if link.EndsWith("/", StringComparison.OrdinalIgnoreCase) then link.Substring(0, link.Length) else link
-        let fileUrl = modpackLink + "/files/latest"
+        async {
+            let modpackLink = if link.EndsWith("/", StringComparison.OrdinalIgnoreCase) then link.Substring(0, link.Length) else link
+            let fileUrl = modpackLink + "/files/latest"
         
-        let homePath =
-            match Environment.OSVersion.Platform with
-            | PlatformID.Unix -> Environment.GetEnvironmentVariable("HOME")
-            | PlatformID.MacOSX -> Environment.GetEnvironmentVariable("HOME")
-            | _ -> Environment.GetFolderPath(Environment.SpecialFolder.Personal)
+            let homePath =
+                match Environment.OSVersion.Platform with
+                | PlatformID.Unix -> Environment.GetEnvironmentVariable("HOME")
+                | PlatformID.MacOSX -> Environment.GetEnvironmentVariable("HOME")
+                | _ -> Environment.GetFolderPath(Environment.SpecialFolder.Personal)
 
-        let response = Http.RequestStream(fileUrl)
+            let! response = Http.AsyncRequestStream(fileUrl)
 
-        //get fileName from download
+            //get fileName from download
 
-        let zipLocation = Path.Combine([|homePath; ".cursedTemp"; "test.zip"|])
+            let zipLocation = Path.Combine([|homePath; ".cursedTemp"; "test.zip"|])
 
-        let fileInfo = new FileInfo(zipLocation)
-        fileInfo.Directory.Create()
+            let fileInfo = new FileInfo(zipLocation)
+            fileInfo.Directory.Create()
 
-        using(File.Create(zipLocation)) (fun fs -> response.ResponseStream.CopyTo(fs))
+            using(File.Create(zipLocation)) (fun fs -> response.ResponseStream.CopyTo(fs))
 
-        //add subdirectory based on zipname
-        ZipFile.ExtractToDirectory(zipLocation, location)
-        fileInfo.Delete()
+            //add subdirectory based on zipname
+            ZipFile.ExtractToDirectory(zipLocation, location)
+            fileInfo.Delete()
+        }
+        
