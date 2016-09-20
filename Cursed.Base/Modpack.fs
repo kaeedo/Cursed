@@ -1,13 +1,11 @@
 ﻿namespace Cursed.Base
 
 open System
-open System.Collections.ObjectModel
 open System.ComponentModel
 open Microsoft.FSharp.Quotations
 open Microsoft.FSharp.Quotations.Patterns
 open System.IO
 open System.IO.Compression
-open System.Threading
 open FSharp.Data
 open Eto.Forms
 
@@ -16,7 +14,7 @@ type ModpackBase() =
     let toPropName (query: Expr) =
         match query with
         | PropertyGet(a, b, list) -> b.Name
-        | _ -> ""
+        | _ -> String.Empty
 
     interface INotifyPropertyChanged with
         [<CLIEvent>]
@@ -32,56 +30,8 @@ type ModpackBase() =
 
 type Modpack(app: Application) as modpack =
     inherit ModpackBase()
-    let mutable extractLocation = ""
 
-    let discoverModpack location =
-        location
-
-    let updateLoop =
-        let inboxHandler (inbox: MailboxProcessor<StateMessage>) =
-            let rec messageLoop oldState = 
-                async {
-                    let! message = inbox.Receive()
-
-                    match message with
-                    | UpdateModpackLink link ->
-                        let newState = { oldState with ModpackLink = link }
-                        return! messageLoop newState
-                    | SetExtractLocation location ->
-                        let newState = { oldState with ExtractLocation = location}
-                        app.Invoke (fun () -> modpack.ExtractLocation <- newState.ExtractLocation)
-
-                        return! messageLoop newState
-                    | DownloadZip ->
-                        //CATCH AND HANDLE EXCEPTIONS
-                        do modpack.DownloadZip oldState.ModpackLink oldState.ExtractLocation |> Async.RunSynchronously
-                        
-                        let modlistHtml = Path.Combine([|oldState.ExtractLocation; "modlist.html"|])
-
-                        let! html = HtmlDocument.AsyncLoad(modlistHtml)
-
-                        return! messageLoop oldState
-                    | None -> ()
-                }
-
-            messageLoop { ModpackLink = ""; ExtractLocation = "" }
-
-        let agent = MailboxProcessor.Start(inboxHandler)
-        agent.Error.Add(fun ex ->
-            match ex with
-            | e -> failwith e.Message
-        )
-        agent
-
-    member modpack.StateAgent = updateLoop
-
-    member modpack.ExtractLocation
-        with get() = extractLocation
-        and private set(value) =
-            extractLocation <- value
-            modpack.OnPropertyChanged <@ modpack.ExtractLocation @>
-
-    member modpack.DownloadZip link location =
+    let downloadZip (link: string) location =
         async {
             let modpackLink = if link.EndsWith("/", StringComparison.OrdinalIgnoreCase) then link.Substring(0, link.Length) else link
             let fileUrl = modpackLink + "/files/latest"
@@ -107,4 +57,67 @@ type Modpack(app: Application) as modpack =
             ZipFile.ExtractToDirectory(zipLocation, location)
             fileInfo.Delete()
         }
+
+    let updateLoop =
+        let inboxHandler (inbox: MailboxProcessor<StateMessage>) =
+            let rec messageLoop oldState = 
+                async {
+                    let! message = inbox.Receive()
+
+                    match message with
+                    | UpdateModpackLink link ->
+                        let newState = { oldState with ModpackLink = link }
+                        return! messageLoop newState
+                    | SetExtractLocation location ->
+                        let newState = { oldState with ExtractLocation = location}
+                        modpack.ExtractLocation <- newState.ExtractLocation
+
+                        return! messageLoop newState
+                    | DownloadZip ->
+                        //CATCH AND HANDLE EXCEPTIONS
+                        do downloadZip oldState.ModpackLink oldState.ExtractLocation |> Async.RunSynchronously
+                        
+                        let modlistHtml = Path.Combine([|oldState.ExtractLocation; "modlist.html"|])
+
+                        let! html = HtmlDocument.AsyncLoad(modlistHtml)
+                        
+                        let links = 
+                            html.Descendants ["a"]
+                            |> Seq.choose (fun a ->
+                                a.TryGetAttribute("href")
+                                |> Option.map (fun attr -> a.InnerText(), attr.Value())
+                            )
+                            |> List.ofSeq
+
+                        let newState = { oldState with Mods = links}
+
+                        return! messageLoop newState
+                    | None -> ()
+                }
+
+            messageLoop { ModpackLink = String.Empty; ExtractLocation = String.Empty; Mods = [] }
+
+        let agent = MailboxProcessor.Start(inboxHandler)
+        agent.Error.Add(fun ex ->
+            match ex with
+            | e -> failwith e.Message
+        )
+        agent
+
+    let mutable extractLocation = String.Empty
+    let mutable mods = [String.Empty, String.Empty]
+
+    member modpack.StateAgent = updateLoop
+
+    member modpack.ExtractLocation
+        with get() = extractLocation
+        and private set(value) =
+            extractLocation <- value
+            app.Invoke (fun () -> modpack.OnPropertyChanged <@ modpack.ExtractLocation @>)
+
+    member modpack.Mods
+        with get() = mods
+        and private set(value) =
+            mods <- value
+            app.Invoke (fun () -> modpack.OnPropertyChanged <@ modpack.Mods @>)
         

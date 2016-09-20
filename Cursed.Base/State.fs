@@ -2,7 +2,8 @@
 
 type AppState =
     { ModpackLink: string 
-      ExtractLocation: string }
+      ExtractLocation: string
+      Mods: (string * string) list }
 
 type StateMessage =
 | UpdateModpackLink of string
