@@ -74,8 +74,7 @@ type Modpack(app: Application) as modpack =
 
                         return! messageLoop newState
                     | DownloadZip ->
-                        //CATCH AND HANDLE EXCEPTIONS
-                        do downloadZip oldState.ModpackLink oldState.ExtractLocation |> Async.RunSynchronously
+                        (*do downloadZip oldState.ModpackLink oldState.ExtractLocation |> Async.RunSynchronously
                         
                         let modlistHtml = Path.Combine([|oldState.ExtractLocation; "modlist.html"|])
 
@@ -87,9 +86,11 @@ type Modpack(app: Application) as modpack =
                                 a.TryGetAttribute("href")
                                 |> Option.map (fun attr -> a.InnerText(), attr.Value())
                             )
-                            |> List.ofSeq
-
+                            |> List.ofSeq*)
+                        
+                        let links = ["gerp", "derp"; "rrrr", "vvdvsdv"]
                         let newState = { oldState with Mods = links}
+                        modpack.Mods <- links
 
                         return! messageLoop newState
                     | None -> ()
@@ -98,10 +99,7 @@ type Modpack(app: Application) as modpack =
             messageLoop { ModpackLink = String.Empty; ExtractLocation = String.Empty; Mods = [] }
 
         let agent = MailboxProcessor.Start(inboxHandler)
-        agent.Error.Add(fun ex ->
-            match ex with
-            | e -> failwith e.Message
-        )
+        agent.Error.Add(raise)
         agent
 
     let mutable extractLocation = String.Empty

@@ -53,6 +53,22 @@ type MainForm(app: Application) =
             button
         new TableRow([new TableCell(openSelectFolderButton); new TableCell(extractLocationLabel)])
 
+    let modsListBox =
+        let listBox = new ListBox()
+
+        let modLabelList (modpack: Modpack) =
+            modpack.Mods
+            |> List.map (fun m ->
+                new Label(Text=fst m) :> obj
+            ) 
+        let c = listBox.DataStore
+            
+        let dataStoreBinding = Binding.Property(fun (lb: ListBox) -> lb.DataStore) 
+        let modsBinding = Binding.Property(fun (m: Modpack) -> m.Mods).Convert(fun mods -> mods |> Seq.map (fun m -> new Label(Text = fst m) :> obj))
+        listBox.BindDataContext<seq<obj>>(dataStoreBinding, modsBinding) |> ignore
+        
+        listBox.Height <- 500
+        new TableRow([new TableCell(listBox, true)])
 
     do 
         base.Title <- "Cursed"
@@ -62,6 +78,7 @@ type MainForm(app: Application) =
         layout.Spacing <- new Size(5, 5)
         layout.Rows.Add(extractLocationRow)
         layout.Rows.Add(urlInputRow)
+        layout.Rows.Add(modsListBox)
         layout.Rows.Add(null)
 
         base.Content <- layout
