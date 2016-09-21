@@ -55,13 +55,6 @@ type MainForm(app: Application) =
 
     let modsListBox =
         let listBox = new ListBox()
-
-        let modLabelList (modpack: Modpack) =
-            modpack.Mods
-            |> List.map (fun m ->
-                new Label(Text=fst m) :> obj
-            ) 
-        let c = listBox.DataStore
             
         let dataStoreBinding = Binding.Property(fun (lb: ListBox) -> lb.DataStore) 
         let modsBinding = Binding.Property(fun (m: Modpack) -> m.Mods).Convert(fun mods -> mods |> Seq.map (fun m -> new Label(Text = fst m) :> obj))
