@@ -2,10 +2,12 @@
 
 open System
 open System.ComponentModel
-open Microsoft.FSharp.Quotations
-open Microsoft.FSharp.Quotations.Patterns
 open System.IO
 open System.IO.Compression
+open System.Net
+open Microsoft.FSharp.Quotations
+open Microsoft.FSharp.Quotations.Patterns
+
 open FSharp.Data
 open Eto.Forms
 
@@ -28,35 +30,36 @@ type ModpackBase() =
         let propName = toPropName(expr)
         this.OnPropertyChanged(propName)
 
-type Modpack(app: Application) as modpack =
+type Modpack(app: Application) as this =
     inherit ModpackBase()
 
     let downloadZip (link: string) location =
-        async {
-            let modpackLink = if link.EndsWith("/", StringComparison.OrdinalIgnoreCase) then link.Substring(0, link.Length) else link
-            let fileUrl = modpackLink + "/files/latest"
+        let modpackLink = if link.EndsWith("/", StringComparison.OrdinalIgnoreCase) then link.Substring(0, link.Length) else link
+        let fileUrl = modpackLink + "/files/latest"
         
-            let homePath =
-                match Environment.OSVersion.Platform with
-                | PlatformID.Unix -> Environment.GetEnvironmentVariable("HOME")
-                | PlatformID.MacOSX -> Environment.GetEnvironmentVariable("HOME")
-                | _ -> Environment.GetFolderPath(Environment.SpecialFolder.Personal)
+        let homePath =
+            match Environment.OSVersion.Platform with
+            | PlatformID.Unix -> Environment.GetEnvironmentVariable("HOME")
+            | PlatformID.MacOSX -> Environment.GetEnvironmentVariable("HOME")
+            | _ -> Environment.GetFolderPath(Environment.SpecialFolder.Personal)
 
-            let! response = Http.AsyncRequestStream(fileUrl)
+        let response = Http.RequestStream(fileUrl)
+            
+        let zipName = Uri.UnescapeDataString(response.ResponseUrl.Split('/') |> Seq.last)
+        let zipLocation = Path.Combine([|homePath; ".cursedTemp"; zipName|])
 
-            //get fileName from download
+        let fileInfo = new FileInfo(zipLocation)
+        fileInfo.Directory.Create()
 
-            let zipLocation = Path.Combine([|homePath; ".cursedTemp"; "test.zip"|])
+        using(File.Create(zipLocation)) (fun fs -> response.ResponseStream.CopyTo(fs))
 
-            let fileInfo = new FileInfo(zipLocation)
-            fileInfo.Directory.Create()
+        let extractLocation = Path.Combine[|location; zipName|]
 
-            using(File.Create(zipLocation)) (fun fs -> response.ResponseStream.CopyTo(fs))
+        ZipFile.ExtractToDirectory(zipLocation, extractLocation)
+        fileInfo.Delete()
 
-            //add subdirectory based on zipname
-            ZipFile.ExtractToDirectory(zipLocation, location)
-            fileInfo.Delete()
-        }
+        //REMOVE .zip FROM NAME
+        zipName
 
     let updateLoop =
         let inboxHandler (inbox: MailboxProcessor<StateMessage>) =
@@ -70,27 +73,30 @@ type Modpack(app: Application) as modpack =
                         return! messageLoop newState
                     | SetExtractLocation location ->
                         let newState = { oldState with ExtractLocation = location}
-                        modpack.ExtractLocation <- newState.ExtractLocation
+                        this.ExtractLocation <- newState.ExtractLocation
 
                         return! messageLoop newState
                     | DownloadZip ->
-                        (*do downloadZip oldState.ModpackLink oldState.ExtractLocation |> Async.RunSynchronously
+                        let zipName = downloadZip oldState.ModpackLink oldState.ExtractLocation
                         
-                        let modlistHtml = Path.Combine([|oldState.ExtractLocation; "modlist.html"|])
+                        let modlistHtml = Path.Combine([|oldState.ExtractLocation; zipName; "modlist.html"|])
 
-                        let! html = HtmlDocument.AsyncLoad(modlistHtml)
+                        let html = HtmlDocument.Load(modlistHtml)
                         
                         let links = 
                             html.Descendants ["a"]
                             |> Seq.choose (fun a ->
                                 a.TryGetAttribute("href")
-                                |> Option.map (fun attr -> a.InnerText(), attr.Value())
+                                |> Option.map (fun attr ->
+                                    let modText = a.InnerText().[0..0].ToUpper() + a.InnerText().[1..]
+                                    modText, attr.Value()
+                                ) 
                             )
-                            |> List.ofSeq*)
+                            |> Seq.sort
+                            |> List.ofSeq
                         
-                        let links = ["gerp", "derp"; "rrrr", "vvdvsdv"]
                         let newState = { oldState with Mods = links}
-                        modpack.Mods <- links
+                        this.Mods <- links
 
                         return! messageLoop newState
                     | None -> ()
@@ -105,17 +111,17 @@ type Modpack(app: Application) as modpack =
     let mutable extractLocation = String.Empty
     let mutable mods = [String.Empty, String.Empty]
 
-    member modpack.StateAgent = updateLoop
+    member this.StateAgent = updateLoop
 
-    member modpack.ExtractLocation
+    member this.ExtractLocation
         with get() = extractLocation
         and private set(value) =
             extractLocation <- value
-            app.Invoke (fun () -> modpack.OnPropertyChanged <@ modpack.ExtractLocation @>)
+            app.Invoke (fun () -> this.OnPropertyChanged <@ this.ExtractLocation @>)
 
-    member modpack.Mods
+    member this.Mods
         with get() = mods
         and private set(value) =
             mods <- value
-            app.Invoke (fun () -> modpack.OnPropertyChanged <@ modpack.Mods @>)
+            app.Invoke (fun () -> this.OnPropertyChanged <@ this.Mods @>)
         

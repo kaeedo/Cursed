@@ -7,7 +7,6 @@ open Eto.Drawing
 type MainForm(app: Application) = 
     inherit Form()
     let modpack = new Modpack(app)
-    let layout = new TableLayout()
 
     let urlInputRow =
         let urlInputLabel = new Label(Text = "Curse Modpack URL")
@@ -45,7 +44,7 @@ type MainForm(app: Application) =
 
             let openSelectFolderHandler _ =
                 let folderDialog = new SelectFolderDialog()
-                folderDialog.ShowDialog(layout.ParentWindow) |> ignore
+                folderDialog.ShowDialog(app.Windows |> Seq.head) |> ignore
                 modpack.StateAgent.Post (SetExtractLocation folderDialog.Directory)
             
             Observable.subscribe openSelectFolderHandler button.MouseDown |> ignore
@@ -61,20 +60,31 @@ type MainForm(app: Application) =
         listBox.BindDataContext<seq<obj>>(dataStoreBinding, modsBinding) |> ignore
         
         listBox.Height <- 500
-        new TableRow([new TableCell(listBox, true)])
+        listBox
 
     do 
         base.Title <- "Cursed"
         base.ClientSize <- new Size(900, 600)
-        
-        layout.Padding <- new Padding(10)
-        layout.Spacing <- new Size(5, 5)
-        layout.Rows.Add(extractLocationRow)
-        layout.Rows.Add(urlInputRow)
-        layout.Rows.Add(modsListBox)
-        layout.Rows.Add(null)
 
-        base.Content <- layout
+        let dynamicLayout =
+            let layout = new DynamicLayout()
+            layout.BeginVertical() |> ignore
+            layout
+        
+        let tableLayout =
+            let layout = new TableLayout()
+        
+            layout.Padding <- new Padding(10)
+            layout.Spacing <- new Size(5, 5)
+            layout.Rows.Add(extractLocationRow)
+            layout.Rows.Add(urlInputRow)
+            layout.Rows.Add(null)
+            layout
+
+        dynamicLayout.Add(tableLayout) |> ignore
+        dynamicLayout.Add(modsListBox) |> ignore
+
+        base.Content <- dynamicLayout
         base.DataContext <- modpack
 
         let quitCommand = new Command(MenuText = "Quit")
