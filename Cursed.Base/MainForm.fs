@@ -31,6 +31,7 @@ type MainForm(app: Application) =
         new TableRow([new TableCell(urlInputLabel); new TableCell(urlInputTextBox, true); new TableCell(discoverButton)])
 
     let extractLocationRow =
+        let extractLocationHelpText = new Label(Text="Choose extract location")
         let extractLocationLabel = 
             let label = new Label()
             label.TextBinding.BindDataContext<Modpack>((fun (m: Modpack) ->
@@ -50,13 +51,21 @@ type MainForm(app: Application) =
             Observable.subscribe openSelectFolderHandler button.MouseDown |> ignore
 
             button
-        new TableRow([new TableCell(openSelectFolderButton); new TableCell(extractLocationLabel)])
+        new TableRow([new TableCell(extractLocationHelpText); new TableCell(extractLocationLabel); new TableCell(openSelectFolderButton)])
 
     let modsListBox =
         let listBox = new ListBox()
+        
+        let modsBinding = Binding.Property(fun (m: Modpack) -> m.Mods).Convert(fun mods ->
+            let a = 1 
+            mods
+            |> Seq.map (fun m -> new Label(Text = fst m) :> obj)
+        )
             
         let dataStoreBinding = Binding.Property(fun (lb: ListBox) -> lb.DataStore) 
-        let modsBinding = Binding.Property(fun (m: Modpack) -> m.Mods).Convert(fun mods -> mods |> Seq.map (fun m -> new Label(Text = fst m) :> obj))
+        let modsBinding = Binding.Property(fun (m: Modpack) -> m.Mods).Convert(fun mods ->
+            mods |> Seq.map (fun m -> new Label(Text = fst m) :> obj)
+        )
         listBox.BindDataContext<seq<obj>>(dataStoreBinding, modsBinding) |> ignore
 
         listBox.Height <- 500
