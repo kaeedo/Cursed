@@ -58,7 +58,10 @@ type MainForm(app: Application) =
         
         let dataStoreBinding = Binding.Property(fun (lb: ListBox) -> lb.DataStore) 
         let modsBinding = Binding.Property(fun (m: Modpack) -> m.Mods).Convert(fun mods ->
-            mods |> Seq.map (fun m -> new Label(Text = fst m) :> obj)
+            mods
+            |> Seq.map (fun m ->
+                fst m :> obj
+            )
         )
         listBox.BindDataContext<seq<obj>>(dataStoreBinding, modsBinding) |> ignore
 
