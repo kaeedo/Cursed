@@ -60,6 +60,18 @@ type Modpack(app: Application) as this =
 
         //REMOVE .zip FROM NAME
         zipName
+    
+    let downloadMod link location =
+        async {
+            let response = Http.RequestStream(link)
+
+            let fileName = Uri.UnescapeDataString(response.ResponseUrl.Split('/') |> Seq.last)
+            let fileInfo = new FileInfo(location)
+
+            fileInfo.Directory.Create()
+            using(File.Create(location)) (fun fs -> response.ResponseStream.CopyTo(fs))
+            return 1
+        }
 
     let updateLoop =
         let inboxHandler (inbox: MailboxProcessor<StateMessage>) =
@@ -97,6 +109,14 @@ type Modpack(app: Application) as this =
                         
                         let newState = { oldState with Mods = links}
                         this.Mods <- links
+
+                        links
+                        |> Seq.map(fun l ->
+                            downloadMod (snd l) (Path.Combine([|oldState.ExtractLocation; zipName|]))
+                        )
+                        |> Async.Parallel
+                        |> Async.RunSynchronously
+                        |> ignore
 
                         return! messageLoop newState
                     | None -> ()
