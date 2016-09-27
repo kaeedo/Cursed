@@ -66,11 +66,9 @@ type Modpack(app: Application) as this =
             let response = Http.RequestStream(link)
 
             let fileName = Uri.UnescapeDataString(response.ResponseUrl.Split('/') |> Seq.last)
-            let fileInfo = new FileInfo(location)
-
-            fileInfo.Directory.Create()
-            using(File.Create(location)) (fun fs -> response.ResponseStream.CopyTo(fs))
-            return 1
+            let fileLocation = Path.Combine([|location; fileName|])
+            
+            do! (using(File.Create(fileLocation)) (response.ResponseStream.CopyToAsync >> Async.AwaitTask))
         }
 
     let updateLoop =
@@ -109,7 +107,7 @@ type Modpack(app: Application) as this =
                         
                         let newState = { oldState with Mods = links}
                         this.Mods <- links
-
+                        
                         links
                         |> Seq.map(fun l ->
                             downloadMod (snd l) (Path.Combine([|oldState.ExtractLocation; zipName|]))
@@ -118,6 +116,8 @@ type Modpack(app: Application) as this =
                         |> Async.RunSynchronously
                         |> ignore
 
+                        this.Mods <- []
+
                         return! messageLoop newState
                     | None -> ()
                 }
@@ -125,7 +125,10 @@ type Modpack(app: Application) as this =
             messageLoop { ModpackLink = String.Empty; ExtractLocation = String.Empty; Mods = [] }
 
         let agent = MailboxProcessor.Start(inboxHandler)
-        agent.Error.Add(raise)
+        agent.Error.Add(fun e ->
+            let a = e
+            raise a
+        )
         agent
 
     let mutable extractLocation = String.Empty
