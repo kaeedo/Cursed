@@ -9,6 +9,8 @@ open Microsoft.FSharp.Quotations
 open Microsoft.FSharp.Quotations.Patterns
 
 open FSharp.Data
+open Hopac
+open HttpFs.Client
 open Eto.Forms
 
 type ModpackBase() =
@@ -34,32 +36,46 @@ type Modpack(app: Application) as this =
     inherit ModpackBase()
 
     let downloadZip (link: string) location =
-        let modpackLink = if link.EndsWith("/", StringComparison.OrdinalIgnoreCase) then link.Substring(0, link.Length) else link
-        let fileUrl = modpackLink + "/files/latest"
+        job {
+            let modpackLink = if link.EndsWith("/", StringComparison.OrdinalIgnoreCase) then link.Substring(0, link.Length) else link
+            let fileUrl = modpackLink + "/files/latest"
         
-        let homePath =
-            match Environment.OSVersion.Platform with
-            | PlatformID.Unix -> Environment.GetEnvironmentVariable("HOME")
-            | PlatformID.MacOSX -> Environment.GetEnvironmentVariable("HOME")
-            | _ -> Environment.GetFolderPath(Environment.SpecialFolder.Personal)
+            let homePath =
+                match Environment.OSVersion.Platform with
+                | PlatformID.Unix -> Environment.GetEnvironmentVariable("HOME")
+                | PlatformID.MacOSX -> Environment.GetEnvironmentVariable("HOME")
+                | _ -> Environment.GetFolderPath(Environment.SpecialFolder.Personal)
 
-        let response = Http.RequestStream(fileUrl)
-            
-        let zipName = Uri.UnescapeDataString(response.ResponseUrl.Split('/') |> Seq.last)
-        let zipLocation = Path.Combine([|homePath; ".cursedTemp"; zipName|])
+            let! response =
+                Request.create Get (Uri fileUrl)
+                |> getResponse
 
-        let fileInfo = new FileInfo(zipLocation)
-        fileInfo.Directory.Create()
+            use ms = new MemoryStream()
+            response.body.CopyTo(ms)
+            let bytes = ms.ToArray()
 
-        using(File.Create(zipLocation)) (fun fs -> response.ResponseStream.CopyTo(fs))
+            //let zipName = Uri.UnescapeDataString(response.ResponseUrl.Split('/') |> Seq.last)
+            let zipName = "zip"
+            let zipLocation = Path.Combine([|homePath; ".cursedTemp"; zipName|])
 
-        let extractLocation = Path.Combine[|location; zipName|]
+            use file = File.Create(zipLocation)
+            file.Write(bytes, 0, bytes.Length)
 
-        ZipFile.ExtractToDirectory(zipLocation, extractLocation)
-        fileInfo.Delete()
+            let fileInfo = new FileInfo(zipLocation)
+            fileInfo.Directory.Create()
 
-        //REMOVE .zip FROM NAME
-        zipName
+            //using(File.Create(zipLocation)) (fun fs -> response.ResponseStream.CopyTo(fs))
+            //File.WriteAllBytes(zipLocation, request)
+
+            let extractLocation = Path.Combine[|location; zipName|]
+
+            ZipFile.ExtractToDirectory(zipLocation, extractLocation)
+            fileInfo.Delete()
+
+            //REMOVE .zip FROM NAME
+            //return zipName
+        }
+        |> run
     
     let downloadMod link location =
         async {
@@ -89,7 +105,7 @@ type Modpack(app: Application) as this =
                     | DownloadZip ->
                         let zipName = downloadZip oldState.ModpackLink oldState.ExtractLocation
                         
-                        let modlistHtml = Path.Combine([|oldState.ExtractLocation; zipName; "modlist.html"|])
+                        (*let modlistHtml = Path.Combine([|oldState.ExtractLocation; "zip"; "modlist.html"|])
 
                         let html = HtmlDocument.Load(modlistHtml)
                         
@@ -114,11 +130,11 @@ type Modpack(app: Application) as this =
                         )
                         |> Async.Parallel
                         |> Async.RunSynchronously
-                        |> ignore
+                        |> ignore*)
 
                         this.Mods <- []
 
-                        return! messageLoop newState
+                        return! messageLoop oldState
                     | None -> ()
                 }
 

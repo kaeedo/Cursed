@@ -17,4 +17,9 @@ NUGET
     FSharp.Core (4.0.0.1)
     FSharp.Data (2.3.2)
       Zlib.Portable (>= 1.11) - framework: portable-net45+sl5+win8, portable-net45+win8, portable-net45+win8+wp8+wpa81
+    Hopac (0.3.14)
+      FSharp.Core (>= 3.1.2.5)
+    Http.fs (4.0.2)
+      FSharp.Core (>= 3.1.2.5)
+      Hopac (>= 0.3.13)
     Zlib.Portable (1.11) - framework: portable-net45+sl5+win8, portable-net45+win8, portable-net45+win8+wp8+wpa81

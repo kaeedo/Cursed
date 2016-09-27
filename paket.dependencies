@@ -10,3 +10,4 @@ nuget Eto.Platform.Windows
 nuget Eto.Platform.Wpf
 nuget FSharp.Data
 nuget FSharp.Core
+nuget Http.fs
