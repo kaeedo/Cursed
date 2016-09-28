@@ -12,6 +12,7 @@ open FSharp.Data
 open Hopac
 open HttpFs.Client
 open Eto.Forms
+open Operators
 
 type ModpackBase() =
     let propertyChanged = new Event<_, _>()
