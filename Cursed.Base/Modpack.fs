@@ -14,6 +14,8 @@ open HttpFs.Client
 open Eto.Forms
 open Operators
 
+type ModpackManifest = JsonProvider<"./SampleManifest.json">
+
 type ModpackBase() =
     let propertyChanged = new Event<_, _>()
     let toPropName (query: Expr) =
@@ -47,22 +49,15 @@ type Modpack(app: Application) as this =
                 | PlatformID.MacOSX -> Environment.GetEnvironmentVariable("HOME")
                 | _ -> Environment.GetFolderPath(Environment.SpecialFolder.Personal)
 
-            let! response =
+            use! response =
                 Request.create Get (Uri fileUrl)
                 |> getResponse
-
-            use ms = new MemoryStream()
-            response.body.CopyTo(ms)
-            let bytes = ms.ToArray()
 
             let zipName = Uri.UnescapeDataString(response.responseUri.Segments |> Array.last)
             let zipLocation = homePath @@ ".cursedTemp"
 
-            Directory.CreateDirectory(zipLocation) |> ignore
-            
-            use file = File.Create(zipLocation @@ zipName)
-            file.Write(bytes, 0, bytes.Length)
-            file.Close()
+            use fileStream = new FileStream(zipLocation @@ zipName, FileMode.Create)
+            do! response.body.CopyToAsync fileStream |> Job.awaitUnitTask
 
             return zipName, zipLocation
         }
@@ -78,15 +73,36 @@ type Modpack(app: Application) as this =
 
         modpackSubdirectory
     
-    let downloadMod link location =
+    let downloadMod (file: ModpackManifest.File) location =
         async {
-            let response = Http.RequestStream(link)
+            let projectResponse =
+                Request.create Get (Uri <| sprintf "http://minecraft.curseforge.com/projects/%i" file.ProjectId)
+                |> getResponse
+                |> run
 
-            let fileName = Uri.UnescapeDataString(response.ResponseUrl.Split('/') |> Seq.last)
-            let fileLocation = location @@ fileName
-            
-            do! (using(File.Create(fileLocation)) (response.ResponseStream.CopyToAsync >> Async.AwaitTask))
+            let fileUrl = sprintf "%A/files/%i/download" projectResponse.responseUri file.FileId
+
+            use fileResponse =
+                Request.create Get (Uri fileUrl)
+                |> getResponse
+                |> run
+
+            let fileName = fileResponse.responseUri.Segments |> Array.last
+
+            use fileStream = new FileStream(location @@ fileName, FileMode.Create)
+            do fileResponse.body.CopyToAsync fileStream |> Job.awaitUnitTask |> ignore
         }
+
+    let downloadAllMods location =
+        let manifestFile = File.ReadAllLines(location @@ "manifest.json") |> Seq.reduce (+)
+        let manifest = ModpackManifest.Parse(manifestFile)
+        
+        manifest.Files.[0..0]
+        |> List.ofSeq
+        |> List.map (fun f -> downloadMod f location)
+        |> Async.Parallel
+        |> Async.RunSynchronously
+        |> ignore
 
     let updateLoop =
         let inboxHandler (inbox: MailboxProcessor<StateMessage>) =
@@ -107,7 +123,7 @@ type Modpack(app: Application) as this =
                         let zipInformation = downloadZip oldState.ModpackLink oldState.ExtractLocation
                         let subdirectory = extractZip oldState.ExtractLocation zipInformation
                         
-                        (*let modlistHtml = Path.Combine([|oldState.ExtractLocation; "zip"; "modlist.html"|])
+                        let modlistHtml = oldState.ExtractLocation @@ subdirectory @@ "modlist.html"
 
                         let html = HtmlDocument.Load(modlistHtml)
                         
@@ -125,16 +141,8 @@ type Modpack(app: Application) as this =
                         
                         let newState = { oldState with Mods = links}
                         this.Mods <- links
-                        
-                        links
-                        |> Seq.map(fun l ->
-                            downloadMod (snd l) (Path.Combine([|oldState.ExtractLocation; zipName|]))
-                        )
-                        |> Async.Parallel
-                        |> Async.RunSynchronously
-                        |> ignore*)
 
-                        this.Mods <- []
+                        downloadAllMods <| oldState.ExtractLocation @@ subdirectory
 
                         return! messageLoop oldState
                     | None -> ()
