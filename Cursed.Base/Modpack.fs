@@ -54,35 +54,35 @@ type Modpack(app: Application) as this =
             response.body.CopyTo(ms)
             let bytes = ms.ToArray()
 
-            //let zipName = Uri.UnescapeDataString(response.ResponseUrl.Split('/') |> Seq.last)
-            let zipName = "zip"
-            let zipLocation = Path.Combine([|homePath; ".cursedTemp"; zipName|])
+            let zipName = Uri.UnescapeDataString(response.responseUri.Segments |> Array.last)
+            let zipLocation = homePath @@ ".cursedTemp"
 
-            use file = File.Create(zipLocation)
+            Directory.CreateDirectory(zipLocation) |> ignore
+            
+            use file = File.Create(zipLocation @@ zipName)
             file.Write(bytes, 0, bytes.Length)
+            file.Close()
 
-            let fileInfo = new FileInfo(zipLocation)
-            fileInfo.Directory.Create()
-
-            //using(File.Create(zipLocation)) (fun fs -> response.ResponseStream.CopyTo(fs))
-            //File.WriteAllBytes(zipLocation, request)
-
-            let extractLocation = Path.Combine[|location; zipName|]
-
-            ZipFile.ExtractToDirectory(zipLocation, extractLocation)
-            fileInfo.Delete()
-
-            //REMOVE .zip FROM NAME
-            //return zipName
+            return zipName, zipLocation
         }
         |> run
+
+    let extractZip location ((zipName: string), (zipLocation: string)) =
+        let modpackSubdirectory = zipName.Substring(0, zipName.LastIndexOf('.'))
+        let extractLocation = location @@ modpackSubdirectory
+        ZipFile.ExtractToDirectory(zipLocation @@ zipName, extractLocation)
+
+        let fileInfo = new FileInfo(zipLocation @@ zipName)
+        fileInfo.Delete()
+
+        modpackSubdirectory
     
     let downloadMod link location =
         async {
             let response = Http.RequestStream(link)
 
             let fileName = Uri.UnescapeDataString(response.ResponseUrl.Split('/') |> Seq.last)
-            let fileLocation = Path.Combine([|location; fileName|])
+            let fileLocation = location @@ fileName
             
             do! (using(File.Create(fileLocation)) (response.ResponseStream.CopyToAsync >> Async.AwaitTask))
         }
@@ -103,7 +103,8 @@ type Modpack(app: Application) as this =
 
                         return! messageLoop newState
                     | DownloadZip ->
-                        let zipName = downloadZip oldState.ModpackLink oldState.ExtractLocation
+                        let zipInformation = downloadZip oldState.ModpackLink oldState.ExtractLocation
+                        let subdirectory = extractZip oldState.ExtractLocation zipInformation
                         
                         (*let modlistHtml = Path.Combine([|oldState.ExtractLocation; "zip"; "modlist.html"|])
 
