@@ -37,6 +37,7 @@ type ModpackBase() =
 
 type Modpack(app: Application) as this =
     inherit ModpackBase()
+    do ServicePointManager.DefaultConnectionLimit <- 1000
 
     let downloadZip (link: string) location =
         job {
@@ -73,36 +74,34 @@ type Modpack(app: Application) as this =
 
         modpackSubdirectory
     
-    let downloadMod (file: ModpackManifest.File) location =
-        async {
-            let projectResponse =
+    let getModDownloadRequest (file: ModpackManifest.File) =
+        job {
+            let response =
                 Request.create Get (Uri <| sprintf "http://minecraft.curseforge.com/projects/%i" file.ProjectId)
                 |> getResponse
                 |> run
 
-            let fileUrl = sprintf "%A/files/%i/download" projectResponse.responseUri file.FileId
+            let fileUrl = sprintf "%A/files/%i/download" response.responseUri file.FileId
 
-            use fileResponse =
-                Request.create Get (Uri fileUrl)
-                |> getResponse
-                |> run
-
-            let fileName = fileResponse.responseUri.Segments |> Array.last
-
-            use fileStream = new FileStream(location @@ fileName, FileMode.Create)
-            do fileResponse.body.CopyToAsync fileStream |> Job.awaitUnitTask |> ignore
+            return Request.create Get (Uri fileUrl)
         }
-
+    
     let downloadAllMods location =
         let manifestFile = File.ReadAllLines(location @@ "manifest.json") |> Seq.reduce (+)
         let manifest = ModpackManifest.Parse(manifestFile)
         
-        manifest.Files.[0..0]
-        |> List.ofSeq
-        |> List.map (fun f -> downloadMod f location)
-        |> Async.Parallel
-        |> Async.RunSynchronously
-        |> ignore
+        let modDownloadRequests =
+            manifest.Files.[0..4]
+            |> List.ofSeq
+            |> List.map (getModDownloadRequest)
+            |> Job.conCollect
+            |> run
+
+        let a = 
+            modDownloadRequests
+            |> List.ofSeq
+            |> List.map (fun r -> r |> getResponse |> run)
+        a
 
     let updateLoop =
         let inboxHandler (inbox: MailboxProcessor<StateMessage>) =
@@ -142,7 +141,7 @@ type Modpack(app: Application) as this =
                         let newState = { oldState with Mods = links}
                         this.Mods <- links
 
-                        downloadAllMods <| oldState.ExtractLocation @@ subdirectory
+                        let a = downloadAllMods <| oldState.ExtractLocation @@ subdirectory
 
                         return! messageLoop oldState
                     | None -> ()
