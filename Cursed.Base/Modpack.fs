@@ -74,34 +74,32 @@ type Modpack(app: Application) as this =
 
         modpackSubdirectory
     
-    let getModDownloadRequest (file: ModpackManifest.File) =
+    let downloadMod (file: ModpackManifest.File) location =
         job {
-            let response =
+            let projectResponse =
                 Request.create Get (Uri <| sprintf "http://minecraft.curseforge.com/projects/%i" file.ProjectId)
                 |> getResponse
                 |> run
 
-            let fileUrl = sprintf "%A/files/%i/download" response.responseUri file.FileId
+            let fileUrl = sprintf "%A/files/%i/download" projectResponse.responseUri file.FileId
 
-            return Request.create Get (Uri fileUrl)
+            using(Request.create Get (Uri fileUrl) |> getResponse |> run) (fun r ->
+                let fileName = r.responseUri.Segments |> Array.last
+
+                using(new FileStream(location @@ fileName, FileMode.Create)) (r.body.CopyTo)
+            )
         }
     
     let downloadAllMods location =
         let manifestFile = File.ReadAllLines(location @@ "manifest.json") |> Seq.reduce (+)
         let manifest = ModpackManifest.Parse(manifestFile)
         
-        let modDownloadRequests =
-            manifest.Files.[0..4]
-            |> List.ofSeq
-            |> List.map (getModDownloadRequest)
-            |> Job.conCollect
-            |> run
-
-        let a = 
-            modDownloadRequests
-            |> List.ofSeq
-            |> List.map (fun r -> r |> getResponse |> run)
-        a
+        manifest.Files
+        |> List.ofSeq
+        |> List.map (fun f -> downloadMod f location)
+        |> Job.conCollect
+        |> run
+        |> ignore
 
     let updateLoop =
         let inboxHandler (inbox: MailboxProcessor<StateMessage>) =
@@ -141,7 +139,7 @@ type Modpack(app: Application) as this =
                         let newState = { oldState with Mods = links}
                         this.Mods <- links
 
-                        let a = downloadAllMods <| oldState.ExtractLocation @@ subdirectory
+                        downloadAllMods <| oldState.ExtractLocation @@ subdirectory
 
                         return! messageLoop oldState
                     | None -> ()
