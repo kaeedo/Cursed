@@ -86,7 +86,7 @@ type Modpack(app: Application) as this =
             using(Request.create Get (Uri fileUrl) |> getResponse |> run) (fun r ->
                 let fileName = r.responseUri.Segments |> Array.last
 
-                using(new FileStream(location @@ fileName, FileMode.Create)) (r.body.CopyTo)
+                using(new FileStream(location @@ "overrides" @@ "mods" @@ fileName, FileMode.Create)) (r.body.CopyTo)
             )
         }
     
@@ -140,6 +140,7 @@ type Modpack(app: Application) as this =
                         this.Mods <- links
 
                         downloadAllMods <| oldState.ExtractLocation @@ subdirectory
+                        Directory.Move(oldState.ExtractLocation @@ subdirectory @@ "overrides", oldState.ExtractLocation @@ subdirectory)
 
                         return! messageLoop oldState
                     | None -> ()
