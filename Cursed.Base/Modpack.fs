@@ -39,6 +39,24 @@ type Modpack(app: Application) as this =
     inherit ModpackBase()
     do ServicePointManager.DefaultConnectionLimit <- 1000
 
+    let rec directoryCopy srcPath dstPath =
+        if not <| System.IO.Directory.Exists(srcPath) then
+            let msg = System.String.Format("Source directory does not exist or could not be found: {0}", srcPath)
+            raise (System.IO.DirectoryNotFoundException(msg))
+
+        if not <| System.IO.Directory.Exists(dstPath) then
+            System.IO.Directory.CreateDirectory(dstPath) |> ignore
+
+        let srcDir = new System.IO.DirectoryInfo(srcPath)
+
+        for file in srcDir.GetFiles() do
+            let temppath = System.IO.Path.Combine(dstPath, file.Name)
+            file.CopyTo(temppath, true) |> ignore
+
+        for subdir in srcDir.GetDirectories() do
+            let dstSubDir = System.IO.Path.Combine(dstPath, subdir.Name)
+            directoryCopy subdir.FullName dstSubDir
+
     let downloadZip (link: string) location =
         job {
             let modpackLink = if link.EndsWith("/", StringComparison.OrdinalIgnoreCase) then link.Substring(0, link.Length) else link
@@ -84,9 +102,12 @@ type Modpack(app: Application) as this =
             let fileUrl = sprintf "%A/files/%i/download" projectResponse.responseUri file.FileId
 
             using(Request.create Get (Uri fileUrl) |> getResponse |> run) (fun r ->
-                let fileName = r.responseUri.Segments |> Array.last
+                let fileName = Uri.UnescapeDataString(r.responseUri.Segments |> Array.last)
 
-                using(new FileStream(location @@ "overrides" @@ "mods" @@ fileName, FileMode.Create)) (r.body.CopyTo)
+                using(new FileStream(location @@ "overrides" @@ "mods" @@ fileName, FileMode.Create)) (fun s -> 
+                    r.body.CopyTo(s)
+                    s.Close()
+                )
             )
         }
     
@@ -140,7 +161,7 @@ type Modpack(app: Application) as this =
                         this.Mods <- links
 
                         downloadAllMods <| oldState.ExtractLocation @@ subdirectory
-                        Directory.Move(oldState.ExtractLocation @@ subdirectory @@ "overrides", oldState.ExtractLocation @@ subdirectory)
+                        directoryCopy (oldState.ExtractLocation @@ subdirectory @@ "overrides") (oldState.ExtractLocation @@ subdirectory)
 
                         return! messageLoop oldState
                     | None -> ()
