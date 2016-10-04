@@ -39,23 +39,23 @@ type Modpack(app: Application) as this =
     inherit ModpackBase()
     do ServicePointManager.DefaultConnectionLimit <- 1000
 
-    let rec directoryCopy srcPath dstPath =
-        if not <| System.IO.Directory.Exists(srcPath) then
-            let msg = System.String.Format("Source directory does not exist or could not be found: {0}", srcPath)
-            raise (System.IO.DirectoryNotFoundException(msg))
+    let rec directoryCopy sourcePath destinationPath =
+        if not <| Directory.Exists(sourcePath) then
+            let message = sprintf "Source directory does not exist or could not be found: %s" sourcePath
+            raise (DirectoryNotFoundException(message))
 
-        if not <| System.IO.Directory.Exists(dstPath) then
-            System.IO.Directory.CreateDirectory(dstPath) |> ignore
+        if not <| Directory.Exists(destinationPath) then
+            Directory.CreateDirectory(destinationPath) |> ignore
 
-        let srcDir = new System.IO.DirectoryInfo(srcPath)
+        let sourceDirectory = new DirectoryInfo(sourcePath)
 
-        for file in srcDir.GetFiles() do
-            let temppath = System.IO.Path.Combine(dstPath, file.Name)
-            file.CopyTo(temppath, true) |> ignore
+        for file in sourceDirectory.GetFiles() do
+            let temporaryPath = destinationPath @@ file.Name
+            file.CopyTo(temporaryPath, true) |> ignore
 
-        for subdir in srcDir.GetDirectories() do
-            let dstSubDir = System.IO.Path.Combine(dstPath, subdir.Name)
-            directoryCopy subdir.FullName dstSubDir
+        for subdirectory in sourceDirectory.GetDirectories() do
+            let destinationSubdirectory = destinationPath @@ subdirectory.Name
+            directoryCopy subdirectory.FullName destinationSubdirectory
 
     let downloadZip (link: string) location =
         job {
