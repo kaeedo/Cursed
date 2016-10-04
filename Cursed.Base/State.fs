@@ -7,7 +7,7 @@ type StateMessage =
 | UpdateModpackLink of string
 | SetExtractLocation of string
 | DownloadZip of AsyncReplyChannel<string>
-| DownloadMod of ModpackManifest.File * string
+| UpdateProgress
 | None
 
 type ProgressBarState =

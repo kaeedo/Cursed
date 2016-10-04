@@ -86,28 +86,6 @@ type Modpack(app: Application) as this =
 
         modpackSubdirectory
     
-    let downloadMod (file: ModpackManifest.File) location =
-        job {
-            let projectResponse =
-                Request.create Get (Uri <| sprintf "http://minecraft.curseforge.com/projects/%i" file.ProjectId)
-                |> getResponse
-                |> run
-
-            let fileUrl = sprintf "%A/files/%i/download" projectResponse.responseUri file.FileId
-
-            using(Request.create Get (Uri fileUrl) |> getResponse |> run) (fun r ->
-                let fileName = Uri.UnescapeDataString(r.responseUri.Segments |> Array.last)
-
-                let modsDirectory = location @@ "mods"
-                Directory.CreateDirectory(modsDirectory) |> ignore
-
-                using(new FileStream(modsDirectory @@ fileName, FileMode.Create)) (fun s -> 
-                    r.body.CopyTo(s)
-                    s.Close()
-                )
-            )
-        }
-
     let updateLoop =
         let inboxHandler (inbox: MailboxProcessor<StateMessage>) =
             let rec messageLoop oldState = 
@@ -152,14 +130,13 @@ type Modpack(app: Application) as this =
                         reply.Reply (oldState.ExtractLocation @@ subdirectory)
 
                         return! messageLoop newState
-                    | DownloadMod (file, location) ->
-                        downloadMod file location |> run
+                    | UpdateProgress ->
                         let progress =
                             let previousProgress =
                                 match oldState.ProgressBarState with
                                 | Progress numberCompleted -> numberCompleted
                                 | _ -> 0
-                            ProgressBarState.Progress ((previousProgress + 1 / oldState.Mods.Length) * 100)
+                            ProgressBarState.Progress (previousProgress + 1)
 
                         let newState = { oldState with ProgressBarState = progress }
                         this.ProgressBarState <- progress
@@ -200,3 +177,27 @@ type Modpack(app: Application) as this =
         and private set(value) =
             progressBarState <- value
             app.Invoke (fun () -> this.OnPropertyChanged <@ this.ProgressBarState @>)
+
+    member this.DownloadMod location (file: ModpackManifest.File) =
+        job {
+            let projectResponse =
+                Request.create Get (Uri <| sprintf "http://minecraft.curseforge.com/projects/%i" file.ProjectId)
+                |> getResponse
+                |> run
+
+            let fileUrl = sprintf "%A/files/%i/download" projectResponse.responseUri file.FileId
+
+            using(Request.create Get (Uri fileUrl) |> getResponse |> run) (fun r ->
+                let fileName = Uri.UnescapeDataString(r.responseUri.Segments |> Array.last)
+
+                let modsDirectory = location @@ "mods"
+                Directory.CreateDirectory(modsDirectory) |> ignore
+
+                using(new FileStream(modsDirectory @@ fileName, FileMode.Create)) (fun s -> 
+                    r.body.CopyTo(s)
+                    s.Close()
+                )
+            )
+
+            this.StateAgent.Post UpdateProgress
+        }

@@ -32,13 +32,9 @@ type MainForm(app: Application) =
                     let manifestFile = File.ReadAllLines(modpackLocation @@ "manifest.json") |> Seq.reduce (+)
                     let manifest = ModpackManifest.Parse(manifestFile)
                     
-                    manifest.Files.[0..2]
+                    manifest.Files
                     |> List.ofSeq
-                    |> List.map (fun f ->
-                        job {
-                            modpack.StateAgent.Post (DownloadMod (f, modpackLocation))
-                        }
-                    )
+                    |> List.map (modpack.DownloadMod modpackLocation)
                     |> Job.conCollect
                     |> run
                     |> ignore
@@ -88,6 +84,12 @@ type MainForm(app: Application) =
         )
         progressBar.BindDataContext<bool>(indeterminateBinding, progressBarIndeterminateBinding) |> ignore
 
+        let maxValueBinding = Binding.Property(fun (pb: ProgressBar) -> pb.MaxValue) 
+        let progressBarMaxValueBinding = Binding.Property(fun (m: Modpack) -> m.Mods).Convert(fun mods ->
+            mods.Length
+        )
+        progressBar.BindDataContext<int>(maxValueBinding, progressBarMaxValueBinding) |> ignore
+        
         let progressBinding = Binding.Property(fun (pb: ProgressBar) -> pb.Value) 
         let progressBarProgressBinding = Binding.Property(fun (m: Modpack) -> m.ProgressBarState).Convert(fun state ->
             match state with
@@ -95,6 +97,7 @@ type MainForm(app: Application) =
             | _ -> 0
         )
         progressBar.BindDataContext<int>(progressBinding, progressBarProgressBinding) |> ignore
+        
 
         progressBar
 
