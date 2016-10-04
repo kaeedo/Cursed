@@ -14,8 +14,6 @@ open HttpFs.Client
 open Eto.Forms
 open Operators
 
-type ModpackManifest = JsonProvider<"./SampleManifest.json">
-
 type ModpackBase() =
     let propertyChanged = new Event<_, _>()
     let toPropName (query: Expr) =
@@ -40,22 +38,18 @@ type Modpack(app: Application) as this =
     do ServicePointManager.DefaultConnectionLimit <- 1000
 
     let rec directoryCopy sourcePath destinationPath =
-        if not <| Directory.Exists(sourcePath) then
-            let message = sprintf "Source directory does not exist or could not be found: %s" sourcePath
-            raise (DirectoryNotFoundException(message))
-
-        if not <| Directory.Exists(destinationPath) then
-            Directory.CreateDirectory(destinationPath) |> ignore
+        Directory.CreateDirectory(destinationPath) |> ignore
 
         let sourceDirectory = new DirectoryInfo(sourcePath)
+        sourceDirectory.GetFiles()
+        |> Seq.iter (fun f ->
+            f.CopyTo(destinationPath @@ f.Name, true) |> ignore
+        )
 
-        for file in sourceDirectory.GetFiles() do
-            let temporaryPath = destinationPath @@ file.Name
-            file.CopyTo(temporaryPath, true) |> ignore
-
-        for subdirectory in sourceDirectory.GetDirectories() do
-            let destinationSubdirectory = destinationPath @@ subdirectory.Name
-            directoryCopy subdirectory.FullName destinationSubdirectory
+        sourceDirectory.GetDirectories()
+        |> Seq.iter (fun d ->
+            directoryCopy d.FullName (destinationPath @@ d.Name) |> ignore
+        )
 
     let downloadZip (link: string) location =
         job {
@@ -104,30 +98,22 @@ type Modpack(app: Application) as this =
             using(Request.create Get (Uri fileUrl) |> getResponse |> run) (fun r ->
                 let fileName = Uri.UnescapeDataString(r.responseUri.Segments |> Array.last)
 
-                using(new FileStream(location @@ "overrides" @@ "mods" @@ fileName, FileMode.Create)) (fun s -> 
+                let modsDirectory = location @@ "mods"
+                Directory.CreateDirectory(modsDirectory) |> ignore
+
+                using(new FileStream(modsDirectory @@ fileName, FileMode.Create)) (fun s -> 
                     r.body.CopyTo(s)
                     s.Close()
                 )
             )
         }
-    
-    let downloadAllMods location =
-        let manifestFile = File.ReadAllLines(location @@ "manifest.json") |> Seq.reduce (+)
-        let manifest = ModpackManifest.Parse(manifestFile)
-        
-        manifest.Files
-        |> List.ofSeq
-        |> List.map (fun f -> downloadMod f location)
-        |> Job.conCollect
-        |> run
-        |> ignore
 
     let updateLoop =
         let inboxHandler (inbox: MailboxProcessor<StateMessage>) =
             let rec messageLoop oldState = 
                 async {
                     let! message = inbox.Receive()
-
+                    
                     match message with
                     | UpdateModpackLink link ->
                         let newState = { oldState with ModpackLink = link }
@@ -137,7 +123,9 @@ type Modpack(app: Application) as this =
                         this.ExtractLocation <- newState.ExtractLocation
 
                         return! messageLoop newState
-                    | DownloadZip ->
+                    | DownloadZip reply ->
+                        this.ProgressBarState <- Indeterminate
+
                         let zipInformation = downloadZip oldState.ModpackLink oldState.ExtractLocation
                         let subdirectory = extractZip oldState.ExtractLocation zipInformation
                         
@@ -157,17 +145,30 @@ type Modpack(app: Application) as this =
                             |> Seq.sort
                             |> List.ofSeq
                         
-                        let newState = { oldState with Mods = links}
+                        let newState = { oldState with Mods = links; ProgressBarState = Indeterminate }
                         this.Mods <- links
-
-                        downloadAllMods <| oldState.ExtractLocation @@ subdirectory
+                        
                         directoryCopy (oldState.ExtractLocation @@ subdirectory @@ "overrides") (oldState.ExtractLocation @@ subdirectory)
+                        reply.Reply (oldState.ExtractLocation @@ subdirectory)
 
-                        return! messageLoop oldState
+                        return! messageLoop newState
+                    | DownloadMod (file, location) ->
+                        downloadMod file location |> run
+                        let progress =
+                            let previousProgress =
+                                match oldState.ProgressBarState with
+                                | Progress numberCompleted -> numberCompleted
+                                | _ -> 0
+                            ProgressBarState.Progress ((previousProgress + 1 / oldState.Mods.Length) * 100)
+
+                        let newState = { oldState with ProgressBarState = progress }
+                        this.ProgressBarState <- progress
+
+                        return! messageLoop newState
                     | None -> ()
                 }
 
-            messageLoop { ModpackLink = String.Empty; ExtractLocation = String.Empty; Mods = [] }
+            messageLoop { ModpackLink = String.Empty; ExtractLocation = String.Empty; Mods = []; ProgressBarState = Disabled }
 
         let agent = MailboxProcessor.Start(inboxHandler)
         agent.Error.Add(fun e ->
@@ -178,6 +179,7 @@ type Modpack(app: Application) as this =
 
     let mutable extractLocation = String.Empty
     let mutable mods = [String.Empty, String.Empty]
+    let mutable progressBarState = Disabled
 
     member this.StateAgent = updateLoop
 
@@ -193,3 +195,8 @@ type Modpack(app: Application) as this =
             mods <- value
             app.Invoke (fun () -> this.OnPropertyChanged <@ this.Mods @>)
         
+    member this.ProgressBarState
+        with get() = progressBarState
+        and private set(value) =
+            progressBarState <- value
+            app.Invoke (fun () -> this.OnPropertyChanged <@ this.ProgressBarState @>)

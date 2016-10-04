@@ -1,8 +1,11 @@
 ﻿namespace Cursed.Base
 
 open System
+open System.IO
 open Eto.Forms
 open Eto.Drawing
+open Operators
+open Hopac
 
 type MainForm(app: Application) = 
     inherit Form()
@@ -23,7 +26,24 @@ type MainForm(app: Application) =
             let button = new Button(Text = "Discover")
 
             let addModpackLinkHandler _ =
-                modpack.StateAgent.Post DownloadZip
+                async {
+                    let! modpackLocation = modpack.StateAgent.PostAndAsyncReply DownloadZip
+
+                    let manifestFile = File.ReadAllLines(modpackLocation @@ "manifest.json") |> Seq.reduce (+)
+                    let manifest = ModpackManifest.Parse(manifestFile)
+                    
+                    manifest.Files.[0..2]
+                    |> List.ofSeq
+                    |> List.map (fun f ->
+                        job {
+                            modpack.StateAgent.Post (DownloadMod (f, modpackLocation))
+                        }
+                    )
+                    |> Job.conCollect
+                    |> run
+                    |> ignore
+                }
+                |> Async.Start
 
             Observable.subscribe addModpackLinkHandler button.MouseDown |> ignore
             button
@@ -52,6 +72,31 @@ type MainForm(app: Application) =
 
             button
         new TableRow([new TableCell(extractLocationHelpText); new TableCell(extractLocationLabel); new TableCell(openSelectFolderButton)])
+
+    let progressBar =
+        let progressBar = new ProgressBar()
+
+        let enabledBinding = Binding.Property(fun (pb: ProgressBar) -> pb.Enabled) 
+        let progressBarEnabledBinding = Binding.Property(fun (m: Modpack) -> m.ProgressBarState).Convert(fun state ->
+            state <> Disabled
+        )
+        progressBar.BindDataContext<bool>(enabledBinding, progressBarEnabledBinding) |> ignore
+
+        let indeterminateBinding = Binding.Property(fun (pb: ProgressBar) -> pb.Indeterminate) 
+        let progressBarIndeterminateBinding = Binding.Property(fun (m: Modpack) -> m.ProgressBarState).Convert(fun state ->
+            state = Indeterminate
+        )
+        progressBar.BindDataContext<bool>(indeterminateBinding, progressBarIndeterminateBinding) |> ignore
+
+        let progressBinding = Binding.Property(fun (pb: ProgressBar) -> pb.Value) 
+        let progressBarProgressBinding = Binding.Property(fun (m: Modpack) -> m.ProgressBarState).Convert(fun state ->
+            match state with
+            | Progress percentComplete -> percentComplete
+            | _ -> 0
+        )
+        progressBar.BindDataContext<int>(progressBinding, progressBarProgressBinding) |> ignore
+
+        progressBar
 
     let modsListBox =
         let listBox = new ListBox()
@@ -84,10 +129,10 @@ type MainForm(app: Application) =
             layout.Spacing <- new Size(5, 5)
             layout.Rows.Add(extractLocationRow)
             layout.Rows.Add(urlInputRow)
-            layout.Rows.Add(null)
             layout
 
         dynamicLayout.Add(tableLayout) |> ignore
+        dynamicLayout.Add(progressBar) |> ignore
         dynamicLayout.Add(modsListBox) |> ignore
 
         base.Content <- dynamicLayout
