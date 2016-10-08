@@ -101,20 +101,51 @@ type MainForm(app: Application) =
 
         progressBar
 
-    let modsListBox =
+    let incompleteModsListBox =
         let listBox = new ListBox()
         
         let dataStoreBinding = Binding.Property(fun (lb: ListBox) -> lb.DataStore) 
         let modsBinding = Binding.Property(fun (m: Modpack) -> m.Mods).Convert(fun mods ->
             mods
+            |> Seq.filter (fun m ->
+                not m.Completed
+            )
             |> Seq.map (fun m ->
-                fst m :> obj
+                m.Name :> obj
             )
         )
         listBox.BindDataContext<seq<obj>>(dataStoreBinding, modsBinding) |> ignore
 
         listBox.Height <- 500
-        listBox
+
+        let layout = new DynamicLayout()
+        layout.BeginVertical() |> ignore
+        layout.Add(new Label(Text = "Incomplete")) |> ignore
+        layout.Add(listBox) |> ignore
+        layout
+
+    let completeModsListBox =
+        let listBox = new ListBox()
+        
+        let dataStoreBinding = Binding.Property(fun (lb: ListBox) -> lb.DataStore) 
+        let modsBinding = Binding.Property(fun (m: Modpack) -> m.Mods).Convert(fun mods ->
+            mods
+            |> Seq.filter (fun m ->
+                m.Completed
+            )
+            |> Seq.map (fun m ->
+                m.Name :> obj
+            )
+        )
+        listBox.BindDataContext<seq<obj>>(dataStoreBinding, modsBinding) |> ignore
+
+        listBox.Height <- 500
+        
+        let layout = new DynamicLayout()
+        layout.BeginVertical() |> ignore
+        layout.Add(new Label(Text = "Complete")) |> ignore
+        layout.Add(listBox) |> ignore
+        layout
 
     do 
         base.Title <- "Cursed"
@@ -123,6 +154,13 @@ type MainForm(app: Application) =
         let dynamicLayout =
             let layout = new DynamicLayout()
             layout.BeginVertical() |> ignore
+            layout
+
+        let modListsDynamicLayout =
+            let layout = new DynamicLayout()
+            layout.BeginHorizontal() |> ignore
+            layout.Add(incompleteModsListBox, Nullable true) |> ignore
+            layout.Add(completeModsListBox, Nullable true) |> ignore
             layout
         
         let tableLayout =
@@ -136,7 +174,7 @@ type MainForm(app: Application) =
 
         dynamicLayout.Add(tableLayout) |> ignore
         dynamicLayout.Add(progressBar) |> ignore
-        dynamicLayout.Add(modsListBox) |> ignore
+        dynamicLayout.Add(modListsDynamicLayout) |> ignore
 
         base.Content <- dynamicLayout
         base.DataContext <- modpack

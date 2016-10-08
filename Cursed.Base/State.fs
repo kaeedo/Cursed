@@ -7,7 +7,7 @@ type StateMessage =
 | UpdateModpackLink of string
 | SetExtractLocation of string
 | DownloadZip of AsyncReplyChannel<string>
-| UpdateProgress
+| UpdateProgress of int
 | None
 
 type ProgressBarState =
@@ -15,8 +15,14 @@ type ProgressBarState =
 | Progress of int
 | Disabled
 
+type Mod =
+    { Link: string
+      Name: string
+      Completed: bool
+      ProjectId: int }
+
 type AppState =
     { ModpackLink: string 
       ExtractLocation: string
-      Mods: (string * string) list
+      Mods: Mod list
       ProgressBarState: ProgressBarState }

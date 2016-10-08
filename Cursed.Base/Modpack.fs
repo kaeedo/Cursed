@@ -121,6 +121,11 @@ type Modpack(app: Application) as this =
                                 ) 
                             )
                             |> Seq.sort
+                            |> Seq.map (fun l ->
+                                let name, link = l
+                                let projectId = link.Split('/') |> Seq.last
+                                { Link = link; Name = name; Completed = false; ProjectId = Int32.Parse(projectId) }
+                            )
                             |> List.ofSeq
                         
                         let newState = { oldState with Mods = links; ProgressBarState = Indeterminate }
@@ -130,7 +135,7 @@ type Modpack(app: Application) as this =
                         reply.Reply (oldState.ExtractLocation @@ subdirectory)
 
                         return! messageLoop newState
-                    | UpdateProgress ->
+                    | UpdateProgress projectId ->
                         let progress =
                             let previousProgress =
                                 match oldState.ProgressBarState with
@@ -138,14 +143,33 @@ type Modpack(app: Application) as this =
                                 | _ -> 0
                             ProgressBarState.Progress (previousProgress + 1)
 
-                        let newState = { oldState with ProgressBarState = progress }
+                        let finishedMod = 
+                            oldState.Mods
+                            |> List.find (fun m ->
+                                m.ProjectId = projectId
+                            )
+
+                        let updateMods = 
+                            oldState.Mods
+                            |> List.map (fun m ->
+                                if m = finishedMod then
+                                    { finishedMod with Completed = true }
+                                else
+                                    m
+                            )
+
+                        let newState = { oldState with ProgressBarState = progress; Mods = updateMods }
                         this.ProgressBarState <- progress
+                        this.Mods <- updateMods
 
                         return! messageLoop newState
                     | None -> ()
                 }
 
-            messageLoop { ModpackLink = String.Empty; ExtractLocation = String.Empty; Mods = []; ProgressBarState = Disabled }
+            messageLoop { ModpackLink = String.Empty
+                          ExtractLocation = String.Empty
+                          Mods = []
+                          ProgressBarState = Disabled }
 
         let agent = MailboxProcessor.Start(inboxHandler)
         agent.Error.Add(fun e ->
@@ -155,7 +179,7 @@ type Modpack(app: Application) as this =
         agent
 
     let mutable extractLocation = String.Empty
-    let mutable mods = [String.Empty, String.Empty]
+    let mutable mods = [{ Link = String.Empty; Name = String.Empty; Completed = false; ProjectId = 0 }]
     let mutable progressBarState = Disabled
 
     member this.StateAgent = updateLoop
@@ -199,5 +223,5 @@ type Modpack(app: Application) as this =
                 )
             )
 
-            this.StateAgent.Post UpdateProgress
+            this.StateAgent.Post (UpdateProgress file.ProjectId)
         }
