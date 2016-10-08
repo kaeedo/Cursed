@@ -3,8 +3,6 @@ open FSharp.Data
 
 type ModpackManifest = JsonProvider<"./SampleManifest.json">
 
-type Releases = JsonProvider<"./SampleReleases.json">
-
 type StateMessage =
 | UpdateModpackLink of string
 | SetExtractLocation of string
