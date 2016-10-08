@@ -1,20 +1,9 @@
-﻿namespace Cursed
+﻿namespace System
 open System.Reflection
-open System.Runtime.CompilerServices
 
-[<assembly: AssemblyTitle("Cursed")>]
-[<assembly: AssemblyDescription("")>]
-[<assembly: AssemblyConfiguration("")>]
-[<assembly: AssemblyCompany("")>]
-[<assembly: AssemblyProduct("")>]
-[<assembly: AssemblyCopyright("Copyright ©  2016")>]
-[<assembly: AssemblyTrademark("")>]
+[<assembly: AssemblyVersionAttribute("0.0.0")>]
+do ()
 
-// The assembly version has the format {Major}.{Minor}.{Build}.{Revision}
-
-[<assembly: AssemblyVersion("1.0.0.0")>]
-
-//[<assembly: AssemblyDelaySign(false)>]
-//[<assembly: AssemblyKeyFile("")>]
-
-()
+module internal AssemblyVersionInformation =
+    let [<Literal>] Version = "0.0.0"
+    let [<Literal>] InformationalVersion = "0.0.0"
