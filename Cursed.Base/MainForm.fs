@@ -62,7 +62,7 @@ type MainForm(app: Application) =
                         | Some ml ->
                             let manifestFile = File.ReadAllLines(ml @@ "manifest.json") |> Seq.reduce (+)
                             let manifest = ModpackManifest.Parse(manifestFile)
-                            modpack.CreateMultiMc ml manifestFile |> ignore
+                            let forge = modpack.CreateMultiMc ml manifestFile
 
                             manifest.Files
                             |> List.ofSeq
@@ -70,6 +70,8 @@ type MainForm(app: Application) =
                             |> Job.conCollect
                             |> run
                             |> ignore
+
+                            app.Invoke (fun () -> MessageBox.Show(sprintf "To create a MultiMC instance, you must install Forge version: %s" forge, MessageBoxType.Information) |> ignore)
                     }
                     |> Async.Start
 
