@@ -63,7 +63,7 @@ type MainForm(app: Application) =
                             let manifestFile = File.ReadAllLines(ml @@ "manifest.json") |> Seq.reduce (+)
                             let manifest = ModpackManifest.Parse(manifestFile)
                     
-                            manifest.Files.[0..2]
+                            manifest.Files
                             |> List.ofSeq
                             |> List.map (modpack.DownloadMod ml)
                             |> Job.conCollect
@@ -157,6 +157,7 @@ type MainForm(app: Application) =
 
     do 
         base.Title <- "Cursed"
+
         base.ClientSize <- new Size(900, 600)
 
         let dynamicLayout =

@@ -1,25 +1,19 @@
 NUGET
   remote: https://www.nuget.org/api/v2
-    Eto.Forms (2.2)
-    Eto.Platform.Gtk (2.2)
-      Eto.Forms (2.2)
-    Eto.Platform.Gtk3 (2.2)
-      Eto.Forms (2.2)
-    Eto.Platform.Mac (2.2)
-      Eto.Forms (2.2)
-    Eto.Platform.Mac.Template (2.2)
-      Eto.Platform.Mac (2.2)
-    Eto.Platform.Windows (2.2)
-      Eto.Forms (2.2)
-    Eto.Platform.Wpf (2.2)
-      Eto.Forms (2.2)
-    FAKE (4.38.1)
+    Eto.Forms (2.3)
+    Eto.Platform.Gtk (2.3)
+      Eto.Forms (2.3)
+    Eto.Platform.Gtk3 (2.3)
+      Eto.Forms (2.3)
+    Eto.Platform.Wpf (2.3)
+      Eto.Forms (2.3)
+    FAKE (4.41.1)
     FSharp.Core (4.0.0.1)
     FSharp.Data (2.3.2)
-      Zlib.Portable (>= 1.11) - framework: portable-net45+sl5+win8, portable-net45+win8, portable-net45+win8+wp8+wpa81
+      Zlib.Portable (>= 1.11) - framework: >= netstandard11, portable-net45+sl5+win8, portable-net45+win8, portable-net45+win8+wp8+wpa81
     Hopac (0.3.14)
       FSharp.Core (>= 3.1.2.5)
     Http.fs (4.0.2)
       FSharp.Core (>= 3.1.2.5)
       Hopac (>= 0.3.13)
-    Zlib.Portable (1.11) - framework: portable-net45+sl5+win8, portable-net45+win8, portable-net45+win8+wp8+wpa81
+    Zlib.Portable (1.11) - framework: >= netstandard11, portable-net45+sl5+win8, portable-net45+win8, portable-net45+win8+wp8+wpa81

@@ -8,7 +8,7 @@ let buildDir = "./output/"
 Target "SetVersion" (fun _ ->
     let releaseNotes = ReadFile "release-notes.md" |> ReleaseNotesHelper.parseReleaseNotes
 
-    CreateFSharpAssemblyInfo ("." @@ "Cursed" @@ "AssemblyInfo.fs") [Attribute.Version releaseNotes.AssemblyVersion]
+    CreateFSharpAssemblyInfo ("." @@ "Cursed.Base" @@ "AssemblyInfo.fs") [Attribute.Version releaseNotes.AssemblyVersion]
 )
 
 Target "Clean" (fun _ ->

@@ -4,9 +4,8 @@ nuget FAKE
 nuget Eto.Forms
 nuget Eto.Platform.Gtk
 nuget Eto.Platform.Gtk3
-nuget Eto.Platform.Mac
-nuget Eto.Platform.Mac.Template
-nuget Eto.Platform.Windows
+#nuget Eto.Platform.Mac
+#nuget Eto.Platform.Mac.Template
 nuget Eto.Platform.Wpf
 nuget FSharp.Data
 nuget FSharp.Core
