@@ -62,7 +62,8 @@ type MainForm(app: Application) =
                         | Some ml ->
                             let manifestFile = File.ReadAllLines(ml @@ "manifest.json") |> Seq.reduce (+)
                             let manifest = ModpackManifest.Parse(manifestFile)
-                    
+                            modpack.CreateMultiMc ml manifestFile |> ignore
+
                             manifest.Files
                             |> List.ofSeq
                             |> List.map (modpack.DownloadMod ml)
@@ -187,14 +188,3 @@ type MainForm(app: Application) =
 
         base.Content <- dynamicLayout
         base.DataContext <- modpack
-
-        let quitCommand = new Command(MenuText = "Quit")
-        quitCommand.Shortcut <- Application.Instance.CommonModifier ||| Keys.Q
-        quitCommand.Executed.Add(fun e -> Application.Instance.Quit())
-
-        base.Menu <- new MenuBar()
-        let fileItem = new ButtonMenuItem(Text = "&File")
-        base.Menu.Items.Add(fileItem)
-
-        base.Menu.ApplicationItems.Add(new ButtonMenuItem(Text = "&Preferences..."))
-        base.Menu.QuitItem <- quitCommand.CreateMenuItem()
