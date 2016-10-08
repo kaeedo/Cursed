@@ -74,6 +74,7 @@ type Modpack(app: Application) as this =
 
             return zipName, zipLocation
         }
+        |> Job.catch
         |> run
 
     let extractZip location ((zipName: string), (zipLocation: string)) =
@@ -107,36 +108,40 @@ type Modpack(app: Application) as this =
                         this.ProgressBarState <- Indeterminate
 
                         let zipInformation = downloadZip oldState.ModpackLink oldState.ExtractLocation
-                        let subdirectory = extractZip oldState.ExtractLocation zipInformation
+                        match zipInformation with
+                        | Choice2Of2 _ ->
+                            this.ProgressBarState <- Disabled
+                            reply.Reply None
+                            return! messageLoop oldState
+                        | Choice1Of2 zipInfo ->
+                            let subdirectory = extractZip oldState.ExtractLocation zipInfo
+                            let modlistHtml = oldState.ExtractLocation @@ subdirectory @@ "modlist.html"
+                            let html = HtmlDocument.Load(modlistHtml)
                         
-                        let modlistHtml = oldState.ExtractLocation @@ subdirectory @@ "modlist.html"
+                            let links = 
+                                html.Descendants ["a"]
+                                |> Seq.choose (fun a ->
+                                    a.TryGetAttribute("href")
+                                    |> Option.map (fun attr ->
+                                        let modText = a.InnerText().[0..0].ToUpper() + a.InnerText().[1..]
+                                        modText, attr.Value()
+                                    ) 
+                                )
+                                |> Seq.sort
+                                |> Seq.map (fun l ->
+                                    let name, link = l
+                                    let projectId = link.Split('/') |> Seq.last
+                                    { Link = link; Name = name; Completed = false; ProjectId = Int32.Parse(projectId) }
+                                )
+                                |> List.ofSeq
+                        
+                            let newState = { oldState with Mods = links; ProgressBarState = Indeterminate }
+                            this.Mods <- links
+                        
+                            directoryCopy (oldState.ExtractLocation @@ subdirectory @@ "overrides") (oldState.ExtractLocation @@ subdirectory)
+                            reply.Reply (Some (oldState.ExtractLocation @@ subdirectory))
 
-                        let html = HtmlDocument.Load(modlistHtml)
-                        
-                        let links = 
-                            html.Descendants ["a"]
-                            |> Seq.choose (fun a ->
-                                a.TryGetAttribute("href")
-                                |> Option.map (fun attr ->
-                                    let modText = a.InnerText().[0..0].ToUpper() + a.InnerText().[1..]
-                                    modText, attr.Value()
-                                ) 
-                            )
-                            |> Seq.sort
-                            |> Seq.map (fun l ->
-                                let name, link = l
-                                let projectId = link.Split('/') |> Seq.last
-                                { Link = link; Name = name; Completed = false; ProjectId = Int32.Parse(projectId) }
-                            )
-                            |> List.ofSeq
-                        
-                        let newState = { oldState with Mods = links; ProgressBarState = Indeterminate }
-                        this.Mods <- links
-                        
-                        directoryCopy (oldState.ExtractLocation @@ subdirectory @@ "overrides") (oldState.ExtractLocation @@ subdirectory)
-                        reply.Reply (oldState.ExtractLocation @@ subdirectory)
-
-                        return! messageLoop newState
+                            return! messageLoop newState
                     | UpdateProgress projectId ->
                         let progress =
                             let previousProgress =
@@ -165,7 +170,6 @@ type Modpack(app: Application) as this =
                         this.Mods <- updateMods
 
                         return! messageLoop newState
-                    | None -> ()
                 }
 
             messageLoop { ModpackLink = String.Empty

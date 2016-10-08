@@ -6,9 +6,8 @@ type ModpackManifest = JsonProvider<"./SampleManifest.json">
 type StateMessage =
 | UpdateModpackLink of string
 | SetExtractLocation of string
-| DownloadZip of AsyncReplyChannel<string>
+| DownloadZip of AsyncReplyChannel<string option>
 | UpdateProgress of int
-| None
 
 type ProgressBarState =
 | Indeterminate

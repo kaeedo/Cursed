@@ -57,15 +57,18 @@ type MainForm(app: Application) =
                     async {
                         let! modpackLocation = modpack.StateAgent.PostAndAsyncReply DownloadZip
 
-                        let manifestFile = File.ReadAllLines(modpackLocation @@ "manifest.json") |> Seq.reduce (+)
-                        let manifest = ModpackManifest.Parse(manifestFile)
+                        match modpackLocation with
+                        | None -> MessageBox.Show("Something went wrong", MessageBoxType.Error) |> ignore
+                        | Some ml ->
+                            let manifestFile = File.ReadAllLines(ml @@ "manifest.json") |> Seq.reduce (+)
+                            let manifest = ModpackManifest.Parse(manifestFile)
                     
-                        manifest.Files
-                        |> List.ofSeq
-                        |> List.map (modpack.DownloadMod modpackLocation)
-                        |> Job.conCollect
-                        |> run
-                        |> ignore
+                            manifest.Files.[0..2]
+                            |> List.ofSeq
+                            |> List.map (modpack.DownloadMod ml)
+                            |> Job.conCollect
+                            |> run
+                            |> ignore
                     }
                     |> Async.Start
 
