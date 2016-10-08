@@ -11,41 +11,6 @@ type MainForm(app: Application) =
     inherit Form()
     let modpack = new Modpack(app)
 
-    let urlInputRow =
-        let urlInputLabel = new Label(Text = "Curse Modpack URL")
-        
-        let urlInputTextBox = 
-            let textBox = new TextBox()
-            let onInput _ = 
-                modpack.StateAgent.Post (UpdateModpackLink textBox.Text)
-            
-            Observable.subscribe onInput textBox.TextChanged |> ignore
-            textBox
-
-        let discoverButton = 
-            let button = new Button(Text = "Discover")
-
-            let addModpackLinkHandler _ =
-                async {
-                    let! modpackLocation = modpack.StateAgent.PostAndAsyncReply DownloadZip
-
-                    let manifestFile = File.ReadAllLines(modpackLocation @@ "manifest.json") |> Seq.reduce (+)
-                    let manifest = ModpackManifest.Parse(manifestFile)
-                    
-                    manifest.Files
-                    |> List.ofSeq
-                    |> List.map (modpack.DownloadMod modpackLocation)
-                    |> Job.conCollect
-                    |> run
-                    |> ignore
-                }
-                |> Async.Start
-
-            Observable.subscribe addModpackLinkHandler button.MouseDown |> ignore
-            button
-
-        new TableRow([new TableCell(urlInputLabel); new TableCell(urlInputTextBox, true); new TableCell(discoverButton)])
-
     let extractLocationRow =
         let extractLocationHelpText = new Label(Text="Choose extract location")
         let extractLocationLabel = 
@@ -68,6 +33,46 @@ type MainForm(app: Application) =
 
             button
         new TableRow([new TableCell(extractLocationHelpText); new TableCell(extractLocationLabel); new TableCell(openSelectFolderButton)])
+
+    let urlInputRow =
+        let urlInputLabel = new Label(Text = "Curse Modpack URL")
+        
+        let urlInputTextBox = 
+            let textBox = new TextBox()
+            let onInput _ = 
+                modpack.StateAgent.Post (UpdateModpackLink textBox.Text)
+            
+            Observable.subscribe onInput textBox.TextChanged |> ignore
+            textBox
+
+        let discoverButton = 
+            let button = new Button(Text = "Discover")
+
+            let addModpackLinkHandler _ =
+                if String.IsNullOrWhiteSpace(modpack.ExtractLocation) then
+                    MessageBox.Show("Please select an extract location first", MessageBoxType.Warning) |> ignore
+                elif String.IsNullOrWhiteSpace(modpack.ModpackLink) then
+                    MessageBox.Show("Please input the link to the Modpack", MessageBoxType.Warning) |> ignore
+                else
+                    async {
+                        let! modpackLocation = modpack.StateAgent.PostAndAsyncReply DownloadZip
+
+                        let manifestFile = File.ReadAllLines(modpackLocation @@ "manifest.json") |> Seq.reduce (+)
+                        let manifest = ModpackManifest.Parse(manifestFile)
+                    
+                        manifest.Files
+                        |> List.ofSeq
+                        |> List.map (modpack.DownloadMod modpackLocation)
+                        |> Job.conCollect
+                        |> run
+                        |> ignore
+                    }
+                    |> Async.Start
+
+            Observable.subscribe addModpackLinkHandler button.MouseDown |> ignore
+            button
+
+        new TableRow([new TableCell(urlInputLabel); new TableCell(urlInputTextBox, true); new TableCell(discoverButton)])
 
     let progressBar =
         let progressBar = new ProgressBar()

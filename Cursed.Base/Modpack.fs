@@ -95,6 +95,8 @@ type Modpack(app: Application) as this =
                     match message with
                     | UpdateModpackLink link ->
                         let newState = { oldState with ModpackLink = link }
+                        this.ModpackLink <- link
+
                         return! messageLoop newState
                     | SetExtractLocation location ->
                         let newState = { oldState with ExtractLocation = location}
@@ -178,11 +180,17 @@ type Modpack(app: Application) as this =
         )
         agent
 
+    let mutable modpackLink = String.Empty
     let mutable extractLocation = String.Empty
     let mutable mods = [{ Link = String.Empty; Name = String.Empty; Completed = false; ProjectId = 0 }]
     let mutable progressBarState = Disabled
 
     member this.StateAgent = updateLoop
+
+    member this.ModpackLink
+        with get() = modpackLink
+        and private set(value) =
+            modpackLink <- value
 
     member this.ExtractLocation
         with get() = extractLocation
