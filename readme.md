@@ -4,7 +4,7 @@
 Download entire modpacks from Curse site without needing the Curse launcher. All you need is the project site URL from a modpack
 e.g. https://minecraft.curseforge.com/projects/all-the-mods
 
-# This application is written using Eto.Forms, an open source Cross Platform UI library https://github.com/picoe/Eto
+This application is written using Eto.Forms, an open source Cross Platform UI library https://github.com/picoe/Eto
 
 ## Windows
 Extract the contents anywhere, and Double click Cursed.Desktop.exe
