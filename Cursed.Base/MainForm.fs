@@ -161,6 +161,18 @@ type MainForm(app: Application) =
     do 
         base.Title <- "Cursed"
 
+        async {
+            let updateHelper = new UpdateHelper()
+
+            let! isLatest = updateHelper.IsLatest
+
+            app.Invoke (fun () ->
+                if not isLatest then
+                    app.MainForm.Title <- sprintf "Cursed - Update Available"
+            )
+        }
+        |> Async.Start
+
         base.ClientSize <- new Size(900, 600)
 
         let dynamicLayout =

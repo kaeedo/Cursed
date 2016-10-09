@@ -55,6 +55,7 @@
     <Compile Include="Operators.fs" />
     <Compile Include="State.fs" />
     <Compile Include="Modpack.fs" />
+    <Compile Include="UpdateHelper.fs" />
     <Compile Include="MainForm.fs" />
     <None Include="paket.references" />
     <None Include="SampleManifest.json" />

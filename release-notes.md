@@ -1,3 +1,6 @@
+## New in 0.0.4 (Release 2016/10/9)
+* Automatic update check
+
 ## New in 0.0.3 (Release 2016/10/8)
 * Create multiMC instance.cfg
 * Dispaly required Forge version after download
