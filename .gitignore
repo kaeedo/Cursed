@@ -3,6 +3,7 @@
 .paket/paket.exe
 .fake/
 output/
+build/
 packages/*
 Cursed.Base/bin
 Cursed.Base/obj

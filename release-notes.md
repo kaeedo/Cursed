@@ -1,3 +1,6 @@
+## New in 1.0.0 (Release 2016/10/9)
+* First public release
+
 ## New in 0.0.4 (Release 2016/10/9)
 * Automatic update check
 
