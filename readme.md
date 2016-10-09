@@ -6,11 +6,15 @@ e.g. https://minecraft.curseforge.com/projects/all-the-mods
 
 This application is written using Eto.Forms, an open source Cross Platform UI library https://github.com/picoe/Eto
 
+To use the finished download in MultiMC, copy the entire directory to your MultiMC instances directory. MultiMC should automatically detect the new mod, but you will need
+to install Forge yourself.
+
 ## Windows
 Extract the contents anywhere, and Double click Cursed.Desktop.exe
 
 ## Linux
-Requires the Mono runtime. Extract the contents anywhere, and then run Cursed.Desktop.exe using mono e.g. from console "mono ./Cursed.Desktop.exe"
+Tested on Ubuntu Gnome 16. Not sure if it will work for you
+Requires the Mono runtime. To be on the safe side, install mono-complete fsharp and gtk sharp3. Extract the contents anywhere, and then run Cursed.Desktop.exe using mono e.g. from console "mono ./Cursed.Desktop.exe"
 It supports both Gtk2 and Gtk3
 
 ## Mac
