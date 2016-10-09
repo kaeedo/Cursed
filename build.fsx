@@ -4,7 +4,6 @@ open Fake
 open Fake.AssemblyInfoFile
 
 let buildDir = "./build/"
-let outputDir = "./output/"
 
 Target "SetVersion" (fun _ ->
     let releaseNotes = ReadFile "release-notes.md" |> ReleaseNotesHelper.parseReleaseNotes
@@ -13,17 +12,15 @@ Target "SetVersion" (fun _ ->
 )
 
 Target "Clean" (fun _ ->
-    CleanDirs [ buildDir; outputDir ]
+    CleanDirs [ buildDir ]
 )
-
-let mutable assemblies = [""]
 
 Target "Build" (fun _ ->
     ensureDirectory buildDir
 
-    assemblies <-
-        ["./Cursed.sln"]
-        |> MSBuildDebug buildDir "Build"
+    ["./Cursed.sln"]
+    |> MSBuildDebug buildDir "Build"
+    |> ignore
 )
 
 "Clean"
