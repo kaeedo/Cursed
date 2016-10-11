@@ -1,3 +1,6 @@
+## New in 1.0.1 (Release 2016/10/11)
+* Hotfix for modpacks that don't have modlist.html
+
 ## New in 1.0.0 (Release 2016/10/9)
 * First public release
 

@@ -72,6 +72,7 @@ type MainForm(app: Application) =
                             |> ignore
 
                             app.Invoke (fun () -> MessageBox.Show(sprintf "To create a MultiMC instance, you must install Forge version: %s" forge, MessageBoxType.Information) |> ignore)
+                            modpack.StateAgent.Post FinishDownload
                     }
                     |> Async.Start
 

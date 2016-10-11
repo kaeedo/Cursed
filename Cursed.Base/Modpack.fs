@@ -116,28 +116,30 @@ type Modpack(app: Application) as this =
                         | Choice1Of2 zipInfo ->
                             let subdirectory = extractZip oldState.ExtractLocation zipInfo
                             let modlistHtml = subdirectory @@ "modlist.html"
-                            let html = HtmlDocument.Load(modlistHtml)
+
+                            if File.Exists(modlistHtml) then
+                                let html = HtmlDocument.Load(modlistHtml)
                         
-                            let links = 
-                                html.Descendants ["a"]
-                                |> Seq.choose (fun a ->
-                                    a.TryGetAttribute("href")
-                                    |> Option.map (fun attr ->
-                                        let modText = a.InnerText().[0..0].ToUpper() + a.InnerText().[1..]
-                                        modText, attr.Value()
-                                    ) 
-                                )
-                                |> Seq.sort
-                                |> Seq.map (fun l ->
-                                    let name, link = l
-                                    let projectId = link.Split('/') |> Seq.last
-                                    { Link = link; Name = name; Completed = false; ProjectId = Int32.Parse(projectId) }
-                                )
-                                |> List.ofSeq
+                                let links = 
+                                    html.Descendants ["a"]
+                                    |> Seq.choose (fun a ->
+                                        a.TryGetAttribute("href")
+                                        |> Option.map (fun attr ->
+                                            let modText = a.InnerText().[0..0].ToUpper() + a.InnerText().[1..]
+                                            modText, attr.Value()
+                                        ) 
+                                    )
+                                    |> Seq.sort
+                                    |> Seq.map (fun l ->
+                                        let name, link = l
+                                        let projectId = link.Split('/') |> Seq.last
+                                        { Link = link; Name = name; Completed = false; ProjectId = Int32.Parse(projectId) }
+                                    )
+                                    |> List.ofSeq
                         
-                            let newState = { oldState with Mods = links; ProgressBarState = Indeterminate }
-                            this.Mods <- newState.Mods
+                                this.Mods <- links
                         
+                            let newState = { oldState with Mods = this.Mods; ProgressBarState = Indeterminate }
                             directoryCopy (subdirectory @@ "overrides") subdirectory
                             reply.Reply (Some subdirectory)
 
@@ -170,6 +172,15 @@ type Modpack(app: Application) as this =
                         this.Mods <- newState.Mods
 
                         return! messageLoop newState
+                    | AddMod (modName, projectId) ->
+                        if oldState.Mods.Head.Name.Contains(" ") then 
+                            return! messageLoop oldState
+
+                        let newState = { oldState with Mods = { Name = modName; Link = String.Empty; ProjectId = projectId; Completed = false } :: oldState.Mods }
+                        return! messageLoop oldState
+                    | FinishDownload ->
+                        this.ProgressBarState <- Disabled
+                        return! messageLoop oldState
                 }
 
             messageLoop { ModpackLink = String.Empty
@@ -215,6 +226,10 @@ type Modpack(app: Application) as this =
                 Request.create Get (Uri <| sprintf "http://minecraft.curseforge.com/projects/%i" file.ProjectId)
                 |> getResponse
                 |> run
+
+            let modName = projectResponse.responseUri.Segments |> Seq.last
+
+            this.StateAgent.Post (AddMod (modName, file.ProjectId))
 
             let fileUrl = sprintf "%A/files/%i/download" projectResponse.responseUri file.FileId
 

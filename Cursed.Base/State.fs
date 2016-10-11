@@ -8,6 +8,8 @@ type StateMessage =
 | SetExtractLocation of string
 | DownloadZip of AsyncReplyChannel<string option>
 | UpdateProgress of int
+| AddMod of string * int
+| FinishDownload
 
 type ProgressBarState =
 | Indeterminate
