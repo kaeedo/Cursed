@@ -97,9 +97,7 @@ type MainForm(app: Application) =
         progressBar.BindDataContext<bool>(indeterminateBinding, progressBarIndeterminateBinding) |> ignore
 
         let maxValueBinding = Binding.Property(fun (pb: ProgressBar) -> pb.MaxValue) 
-        let progressBarMaxValueBinding = Binding.Property(fun (m: Modpack) -> m.Mods).Convert(fun mods ->
-            mods.Length
-        )
+        let progressBarMaxValueBinding = Binding.Property(fun (m: Modpack) -> m.ModCount)
         progressBar.BindDataContext<int>(maxValueBinding, progressBarMaxValueBinding) |> ignore
         
         let progressBinding = Binding.Property(fun (pb: ProgressBar) -> pb.Value) 

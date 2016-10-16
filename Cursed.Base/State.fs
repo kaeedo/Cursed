@@ -26,4 +26,5 @@ type AppState =
     { ModpackLink: string 
       ExtractLocation: string
       Mods: Mod list
+      ModCount: int
       ProgressBarState: ProgressBarState }

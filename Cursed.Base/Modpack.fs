@@ -115,31 +115,11 @@ type Modpack(app: Application) as this =
                             return! messageLoop oldState
                         | Choice1Of2 zipInfo ->
                             let subdirectory = extractZip oldState.ExtractLocation zipInfo
-                            let modlistHtml = subdirectory @@ "modlist.html"
 
-                            if File.Exists(modlistHtml) then
-                                let html = HtmlDocument.Load(modlistHtml)
-                        
-                                let links = 
-                                    html.Descendants ["a"]
-                                    |> Seq.choose (fun a ->
-                                        a.TryGetAttribute("href")
-                                        |> Option.map (fun attr ->
-                                            let modText = a.InnerText().[0..0].ToUpper() + a.InnerText().[1..]
-                                            modText, attr.Value()
-                                        ) 
-                                    )
-                                    |> Seq.sort
-                                    |> Seq.map (fun l ->
-                                        let name, link = l
-                                        let projectId = link.Split('/') |> Seq.last
-                                        { Link = link; Name = name; Completed = false; ProjectId = Int32.Parse(projectId) }
-                                    )
-                                    |> List.ofSeq
-                        
-                                this.Mods <- links
-                        
-                            let newState = { oldState with Mods = this.Mods; ProgressBarState = Indeterminate }
+                            let manifestFile = File.ReadAllLines(subdirectory @@ "manifest.json") |> Seq.reduce (+)
+                            let manifest = ModpackManifest.Parse(manifestFile)
+
+                            let newState = { oldState with ModCount = manifest.Files.Length; ProgressBarState = Indeterminate }
                             directoryCopy (subdirectory @@ "overrides") subdirectory
                             reply.Reply (Some subdirectory)
 
@@ -186,6 +166,7 @@ type Modpack(app: Application) as this =
             messageLoop { ModpackLink = String.Empty
                           ExtractLocation = String.Empty
                           Mods = []
+                          ModCount = 0
                           ProgressBarState = Disabled }
 
         MailboxProcessor.Start(inboxHandler)
@@ -193,6 +174,7 @@ type Modpack(app: Application) as this =
     let mutable modpackLink = String.Empty
     let mutable extractLocation = String.Empty
     let mutable mods = [{ Link = String.Empty; Name = String.Empty; Completed = false; ProjectId = 0 }]
+    let mutable modCount = 0
     let mutable progressBarState = Disabled
 
     member this.StateAgent = updateLoop
@@ -214,11 +196,18 @@ type Modpack(app: Application) as this =
             mods <- value
             app.Invoke (fun () -> this.OnPropertyChanged <@ this.Mods @>)
         
+    member this.ModCount
+        with get() = modCount
+        and private set(value) =
+            modCount <- value
+            app.Invoke (fun () -> this.OnPropertyChanged <@ this.ModCount @>)
+
     member this.ProgressBarState
         with get() = progressBarState
         and private set(value) =
             progressBarState <- value
             app.Invoke (fun () -> this.OnPropertyChanged <@ this.ProgressBarState @>)
+    
 
     member this.DownloadMod location (file: ModpackManifest.File) =
         job {
