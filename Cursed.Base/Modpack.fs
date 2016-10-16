@@ -120,6 +120,9 @@ type Modpack(app: Application) as this =
                             let manifest = ModpackManifest.Parse(manifestFile)
 
                             let newState = { oldState with ModCount = manifest.Files.Length; ProgressBarState = Indeterminate }
+                            this.ModCount <- newState.ModCount
+                            this.ProgressBarState <- newState.ProgressBarState
+
                             directoryCopy (subdirectory @@ "overrides") subdirectory
                             reply.Reply (Some subdirectory)
 
@@ -153,11 +156,10 @@ type Modpack(app: Application) as this =
 
                         return! messageLoop newState
                     | AddMod (modName, projectId) ->
-                        if oldState.Mods.Head.Name.Contains(" ") then 
-                            return! messageLoop oldState
-
                         let newState = { oldState with Mods = { Name = modName; Link = String.Empty; ProjectId = projectId; Completed = false } :: oldState.Mods }
-                        return! messageLoop oldState
+                        this.Mods <- newState.Mods
+
+                        return! messageLoop newState
                     | FinishDownload ->
                         this.ProgressBarState <- Disabled
                         return! messageLoop oldState
