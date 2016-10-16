@@ -1,3 +1,7 @@
+## New in 1.1.0 (Release 2016/10/16)
+* Fix displaying of included mods
+* Remove modlist.html parsing
+
 ## New in 1.0.1 (Release 2016/10/11)
 * Hotfix for modpacks that don't have modlist.html
 
