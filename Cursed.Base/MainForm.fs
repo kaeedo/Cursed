@@ -161,9 +161,9 @@ type MainForm(app: Application) =
         base.Title <- "Cursed"
 
         async {
-            let updateHelper = new UpdateHelper()
+            let startup = new Startup()
 
-            let! isLatest = updateHelper.IsLatest
+            let! isLatest = startup.IsLatest
 
             app.Invoke (fun () ->
                 if not isLatest then

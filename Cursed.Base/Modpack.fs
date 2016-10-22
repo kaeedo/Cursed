@@ -218,9 +218,12 @@ type Modpack(app: Application) as this =
                 |> getResponse
                 |> run
 
-            let modName = projectResponse.responseUri.Segments |> Seq.last
+            let link = projectResponse.responseUri.ToString()
+            let html = HtmlDocument.Load(link)
 
-            this.StateAgent.Post (AddMod (modName, file.ProjectId))
+            let modName = (html.CssSelect("h1.project-title > a > span")).[0].InnerText
+
+            this.StateAgent.Post (AddMod (modName (), file.ProjectId))
 
             let fileUrl = sprintf "%A/files/%i/download" projectResponse.responseUri file.FileId
 

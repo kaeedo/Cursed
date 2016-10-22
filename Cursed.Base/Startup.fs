@@ -4,7 +4,7 @@ open FSharp.Data
 open System
 open System.Reflection
 
-type UpdateHelper() =
+type Startup() =
     let getLatestVersion = 
         async {
             let html = new HtmlProvider<"https://kaeedo.github.io/Cursed/">()
