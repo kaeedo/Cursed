@@ -14,3 +14,5 @@ Cursed/obj
 
 Cursed.userprefs
 /Cursed/Mac/MyApp.app/MacAppTemplate.app/Contents
+/Cursed.Base.Tests/bin/Debug
+/Cursed.Base.Tests/obj/Debug
