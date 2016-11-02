@@ -1,3 +1,4 @@
+REDIRECTS: OFF
 NUGET
   remote: https://www.nuget.org/api/v2
     Eto.Forms (2.3)
@@ -8,7 +9,7 @@ NUGET
     Eto.Platform.Wpf (2.3)
       Eto.Forms (2.3)
     FAKE (4.41.1)
-    FSharp.Core (4.0.0.1)
+    FSharp.Core (4.0.0.1) - redirects: force
     FSharp.Data (2.3.2)
       Zlib.Portable (>= 1.11) - framework: >= netstandard11, portable-net45+sl5+win8, portable-net45+win8, portable-net45+win8+wp8+wpa81
     Hopac (0.3.14)
@@ -17,5 +18,18 @@ NUGET
       FSharp.Core (>= 3.1.2.5)
       Hopac (>= 0.3.13)
     NUnit (3.5)
+    NUnit.Console (3.5)
+      NUnit.ConsoleRunner (>= 3.5)
+      NUnit.Extension.NUnitProjectLoader (>= 3.5)
+      NUnit.Extension.NUnitV2Driver (>= 3.5)
+      NUnit.Extension.NUnitV2ResultWriter (>= 3.5)
+      NUnit.Extension.TeamCityEventListener (>= 1.0.2)
+      NUnit.Extension.VSProjectLoader (>= 3.5)
+    NUnit.ConsoleRunner (3.5)
+    NUnit.Extension.NUnitProjectLoader (3.5)
+    NUnit.Extension.NUnitV2Driver (3.5)
+    NUnit.Extension.NUnitV2ResultWriter (3.5)
+    NUnit.Extension.TeamCityEventListener (1.0.2)
+    NUnit.Extension.VSProjectLoader (3.5)
     Unquote (3.1.2)
     Zlib.Portable (1.11) - framework: >= netstandard11, portable-net45+sl5+win8, portable-net45+win8, portable-net45+win8+wp8+wpa81

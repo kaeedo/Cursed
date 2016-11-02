@@ -1,6 +1,7 @@
 #r "./packages/FAKE/tools/FakeLib.dll"
 
 open Fake
+open Fake.Testing
 open Fake.AssemblyInfoFile
 
 let buildDir = "./build/"
@@ -23,8 +24,14 @@ Target "Build" (fun _ ->
     |> ignore
 )
 
+Target "UnitTests" (fun _ ->
+    !! (buildDir + "/*.Tests.dll")
+    |> NUnit3 id
+)
+
 "Clean"
     ==> "SetVersion"
     ==> "Build"
+    ==> "UnitTests"
 
-RunTargetOrDefault "Build"
+RunTargetOrDefault "UnitTests"

@@ -4,7 +4,7 @@ $FAKE='packages\FAKE\tools\FAKE.exe'
 
 & $PAKET_BOOT
 
-& $PAKET restore
+& $PAKET install
 
 & $FAKE 'build.fsx' @args
 exit $LastExitCode
