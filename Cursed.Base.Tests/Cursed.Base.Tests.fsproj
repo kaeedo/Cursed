@@ -58,7 +58,7 @@
   -->
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Library1.fs" />
+    <Compile Include="MainFormControllerTests.fs" />
     <None Include="paket.references" />
     <Content Include="App.config" />
   </ItemGroup>
@@ -70,6 +70,13 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Cursed.Base\Cursed.Base.fsproj">
+      <Name>Cursed.Base</Name>
+      <Project>{a445a574-586a-426a-b531-b0a03870a544}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <Choose>
     <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v2.0' Or $(TargetFrameworkVersion) == 'v3.0')">

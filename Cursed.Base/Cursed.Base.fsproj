@@ -56,6 +56,7 @@
     <Compile Include="State.fs" />
     <Compile Include="Modpack.fs" />
     <Compile Include="Startup.fs" />
+    <Compile Include="MainFormController.fs" />
     <Compile Include="MainForm.fs" />
     <None Include="paket.references" />
     <None Include="SampleManifest.json" />

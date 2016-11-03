@@ -7,6 +7,8 @@ open Eto.Drawing
 open Operators
 open Hopac
 
+open MainFormController
+
 type MainForm(app: Application) = 
     inherit Form()
     let modpack = new Modpack(app)
@@ -101,11 +103,7 @@ type MainForm(app: Application) =
         progressBar.BindDataContext<int>(maxValueBinding, progressBarMaxValueBinding) |> ignore
         
         let progressBinding = Binding.Property(fun (pb: ProgressBar) -> pb.Value) 
-        let progressBarProgressBinding = Binding.Property(fun (m: Modpack) -> m.ProgressBarState).Convert(fun state ->
-            match state with
-            | Progress percentComplete -> percentComplete
-            | _ -> 0
-        )
+        let progressBarProgressBinding = Binding.Property(fun (m: Modpack) -> m.ProgressBarState).Convert(fun state -> getProgress state)
         progressBar.BindDataContext<int>(progressBinding, progressBarProgressBinding) |> ignore
         
 
@@ -138,15 +136,7 @@ type MainForm(app: Application) =
         let listBox = new ListBox()
         
         let dataStoreBinding = Binding.Property(fun (lb: ListBox) -> lb.DataStore) 
-        let modsBinding = Binding.Property(fun (m: Modpack) -> m.Mods).Convert(fun mods ->
-            mods
-            |> Seq.filter (fun m ->
-                m.Completed
-            )
-            |> Seq.map (fun m ->
-                m.Name :> obj
-            )
-        )
+        let modsBinding = Binding.Property(fun (m: Modpack) -> m.Mods).Convert(fun mods -> getCompletedMods mods)
         listBox.BindDataContext<seq<obj>>(dataStoreBinding, modsBinding) |> ignore
 
         listBox.Height <- 500
