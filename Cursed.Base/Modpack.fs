@@ -252,7 +252,9 @@ type Modpack(app: Application) as this =
             let forge = manifest.Minecraft.ModLoaders.[0].Id
 
             CreateMultiMcInstance manifest.Version manifest.Name manifest.Author forge
-            |> Seq.iter (outFile.WriteLine)
+            |> Seq.iter (fun setting ->
+                outFile.WriteLine(sprintf "%s=%s" setting.Key setting.Value)
+            )
 
             outFile.Flush()
 
