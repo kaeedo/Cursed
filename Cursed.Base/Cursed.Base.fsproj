@@ -54,6 +54,7 @@
     <Compile Include="AssemblyInfo.fs" />
     <Compile Include="Operators.fs" />
     <Compile Include="State.fs" />
+    <Compile Include="ModpackController.fs" />
     <Compile Include="Modpack.fs" />
     <Compile Include="Startup.fs" />
     <Compile Include="MainFormController.fs" />

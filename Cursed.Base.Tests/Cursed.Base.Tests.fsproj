@@ -58,6 +58,7 @@
   -->
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="ModpackControllerTests.fs" />
     <Compile Include="MainFormControllerTests.fs" />
     <None Include="paket.references" />
     <Content Include="App.config" />
