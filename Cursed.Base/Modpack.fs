@@ -129,12 +129,7 @@ type Modpack(app: Application) as this =
 
                             return! messageLoop newState
                     | UpdateProgress projectId ->
-                        let progress =
-                            let previousProgress =
-                                match oldState.ProgressBarState with
-                                | Progress numberCompleted -> numberCompleted
-                                | _ -> 0
-                            ProgressBarState.Progress (previousProgress + 1)
+                        let progress = UpdateProgressBarAmount oldState.ProgressBarState
 
                         let finishedMod = 
                             oldState.Mods
