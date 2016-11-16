@@ -3,7 +3,6 @@
 open System
 open System.ComponentModel
 open System.IO
-open System.IO.Compression
 open System.Net
 open Microsoft.FSharp.Quotations
 open Microsoft.FSharp.Quotations.Patterns
@@ -38,56 +37,6 @@ type Modpack(app: Application) as this =
     inherit ModpackBase()
     do ServicePointManager.DefaultConnectionLimit <- 1000
 
-    let rec directoryCopy sourcePath destinationPath =
-        Directory.CreateDirectory(destinationPath) |> ignore
-
-        let sourceDirectory = new DirectoryInfo(sourcePath)
-        sourceDirectory.GetFiles()
-        |> Seq.iter (fun f ->
-            f.CopyTo(destinationPath @@ f.Name, true) |> ignore
-        )
-
-        sourceDirectory.GetDirectories()
-        |> Seq.iter (fun d ->
-            directoryCopy d.FullName (destinationPath @@ d.Name) |> ignore
-        )
-
-    let downloadZip (link: string) location =
-        job {
-            let modpackLink = if link.EndsWith("/", StringComparison.OrdinalIgnoreCase) then link.Substring(0, link.Length) else link
-            let fileUrl = modpackLink + "/files/latest"
-        
-            let homePath =
-                match Environment.OSVersion.Platform with
-                | PlatformID.Unix -> Environment.GetEnvironmentVariable("HOME")
-                | PlatformID.MacOSX -> Environment.GetEnvironmentVariable("HOME")
-                | _ -> Environment.GetFolderPath(Environment.SpecialFolder.Personal)
-
-            use! response =
-                Request.create Get (Uri fileUrl)
-                |> getResponse
-
-            let zipName = Uri.UnescapeDataString(response.responseUri.Segments |> Array.last)
-            let zipLocation = homePath @@ ".cursedTemp"
-
-            use fileStream = new FileStream(zipLocation @@ zipName, FileMode.Create)
-            do! response.body.CopyToAsync fileStream |> Job.awaitUnitTask
-
-            return zipName, zipLocation
-        }
-        |> Job.catch
-        |> run
-
-    let extractZip location ((zipName: string), (zipLocation: string)) =
-        let modpackSubdirectory = zipName.Substring(0, zipName.LastIndexOf('.'))
-        let extractLocation = location @@ modpackSubdirectory @@ "minecraft"
-        ZipFile.ExtractToDirectory(zipLocation @@ zipName, extractLocation)
-
-        let fileInfo = new FileInfo(zipLocation @@ zipName)
-        fileInfo.Delete()
-
-        extractLocation
-    
     let updateLoop =
         let inboxHandler (inbox: MailboxProcessor<StateMessage>) =
             let rec messageLoop oldState = 
@@ -108,14 +57,14 @@ type Modpack(app: Application) as this =
                     | DownloadZip reply ->
                         this.ProgressBarState <- Indeterminate
 
-                        let zipInformation = downloadZip oldState.ModpackLink oldState.ExtractLocation
+                        let zipInformation = DownloadZip oldState.ModpackLink oldState.ExtractLocation
                         match zipInformation with
                         | Choice2Of2 _ ->
                             this.ProgressBarState <- Disabled
                             reply.Reply None
                             return! messageLoop oldState
                         | Choice1Of2 zipInfo ->
-                            let subdirectory = extractZip oldState.ExtractLocation zipInfo
+                            let subdirectory = ExtractZip oldState.ExtractLocation zipInfo
 
                             let manifestFile = File.ReadAllLines(subdirectory @@ "manifest.json") |> Seq.reduce (+)
                             let manifest = ModpackManifest.Parse(manifestFile)
@@ -124,7 +73,7 @@ type Modpack(app: Application) as this =
                             this.ModCount <- newState.ModCount
                             this.ProgressBarState <- newState.ProgressBarState
 
-                            directoryCopy (subdirectory @@ "overrides") subdirectory
+                            DirectoryCopy (subdirectory @@ "overrides") subdirectory
                             reply.Reply (Some subdirectory)
 
                             return! messageLoop newState
