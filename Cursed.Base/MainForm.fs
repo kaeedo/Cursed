@@ -56,7 +56,7 @@ type MainForm(app: Application) =
                 elif String.IsNullOrWhiteSpace(modpack.ModpackLink) then
                     MessageBox.Show("Please input the link to the Modpack", MessageBoxType.Warning) |> ignore
                 else
-                    async {
+                    job {
                         let! modpackLocation = modpack.StateAgent.PostAndAsyncReply DownloadZip
 
                         match modpackLocation with
@@ -76,7 +76,7 @@ type MainForm(app: Application) =
                             app.Invoke (fun () -> MessageBox.Show(sprintf "To create a MultiMC instance, you must install Forge version: %s" forge, MessageBoxType.Information) |> ignore)
                             modpack.StateAgent.Post FinishDownload
                     }
-                    |> Async.Start
+                    |> start
 
             Observable.subscribe addModpackLinkHandler button.MouseDown |> ignore
             button
@@ -142,7 +142,7 @@ type MainForm(app: Application) =
     do 
         base.Title <- "Cursed"
 
-        async {
+        job {
             let startup = new Startup()
 
             let! isLatest = startup.IsLatest
@@ -152,7 +152,7 @@ type MainForm(app: Application) =
                     app.MainForm.Title <- sprintf "Cursed - Update Available"
             )
         }
-        |> Async.Start
+        |> start
 
         base.ClientSize <- new Size(900, 600)
 

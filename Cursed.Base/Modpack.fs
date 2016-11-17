@@ -188,7 +188,7 @@ type Modpack(app: Application) as this =
         }
 
     member this.CreateMultiMc location manifestFile =
-        async {
+        job {
             let directory = new DirectoryInfo(location)
             let outFile = new StreamWriter(directory.Parent.FullName @@ "instance.cfg")
 
@@ -204,4 +204,4 @@ type Modpack(app: Application) as this =
 
             return forge
         }
-        |> Async.RunSynchronously
+        |> run
