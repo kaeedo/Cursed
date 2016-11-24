@@ -14,3 +14,12 @@ module MainFormController =
         |> Seq.map (fun m ->
             m.Name :> obj
         )
+
+    let getIncompleteMods mods =
+        mods
+        |> Seq.filter (fun m ->
+            not m.Completed
+        )
+        |> Seq.map (fun m ->
+            m.Name :> obj
+        )

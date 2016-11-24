@@ -113,7 +113,7 @@ type MainForm(app: Application) =
         let listBox = new ListBox()
         
         let dataStoreBinding = Binding.Property(fun (lb: ListBox) -> lb.DataStore) 
-        let modsBinding = Binding.Property(fun (m: Modpack) -> m.Mods).Convert(fun mods -> getCompletedMods mods)
+        let modsBinding = Binding.Property(fun (m: Modpack) -> m.Mods).Convert(fun mods -> getIncompleteMods mods)
         listBox.BindDataContext<seq<obj>>(dataStoreBinding, modsBinding) |> ignore
 
         listBox.Height <- 500
