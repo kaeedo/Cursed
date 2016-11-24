@@ -1,10 +1,8 @@
 ﻿namespace Cursed.Base.Tests
-
 open Cursed.Base
 
 open NUnit.Framework
 open Swensen.Unquote
-open ModpackController
 
 [<TestFixture>]
 type ModpackControllerTests() = 
@@ -14,7 +12,7 @@ type ModpackControllerTests() =
         let name = "name"
         let author = "me"
         let forge = "12.4234.525.234"
-        let instance = CreateMultiMcInstance version name author forge
+        let instance = ModpackController.CreateMultiMcInstance version name author forge
         test <@ instance.Count = 14 @>
         test <@ instance.["InstanceType"] = "OneSix" @>
         test <@ instance.["IntendedVersion"] = version @>
@@ -33,6 +31,6 @@ type ModpackControllerTests() =
 
     [<Test>]
     member this.``When updating progress bar state should correctly set state`` () =
-        test <@ UpdateProgressBarAmount (Progress 1) = Progress 2 @>
-        test <@ UpdateProgressBarAmount Indeterminate = Progress 1 @>
-        test <@ UpdateProgressBarAmount Disabled = Progress 1 @>
+        test <@ ModpackController.UpdateProgressBarAmount (Progress 1) = Progress 2 @>
+        test <@ ModpackController.UpdateProgressBarAmount Indeterminate = Progress 1 @>
+        test <@ ModpackController.UpdateProgressBarAmount Disabled = Progress 1 @>

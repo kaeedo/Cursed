@@ -28,3 +28,10 @@ type AppState =
       Mods: Mod list
       ModCount: int
       ProgressBarState: ProgressBarState }
+
+type StateReplyMessage =
+| UpdateModpackLink of string * AsyncReplyChannel<string>
+| SetExtractLocation of string * AsyncReplyChannel<string>
+| UpdateProgress of int * AsyncReplyChannel<ProgressBarState * Mod list>
+| AddMod of string * int * AsyncReplyChannel<Mod list>
+| FinishDownload of AsyncReplyChannel<ProgressBarState>

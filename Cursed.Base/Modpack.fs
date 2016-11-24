@@ -44,17 +44,17 @@ type Modpack(app: Application) as this =
                     let! message = inbox.Receive()
                     
                     match message with
-                    | UpdateModpackLink link ->
+                    | StateMessage.UpdateModpackLink link ->
                         let newState = { oldState with ModpackLink = link }
                         this.ModpackLink <- newState.ModpackLink
 
                         return! messageLoop newState
-                    | SetExtractLocation location ->
+                    | StateMessage.SetExtractLocation location ->
                         let newState = { oldState with ExtractLocation = location}
                         this.ExtractLocation <- newState.ExtractLocation
 
                         return! messageLoop newState
-                    | DownloadZip reply ->
+                    | StateMessage.DownloadZip reply ->
                         this.ProgressBarState <- Indeterminate
 
                         let zipInformation = DownloadZip oldState.ModpackLink oldState.ExtractLocation
@@ -77,7 +77,7 @@ type Modpack(app: Application) as this =
                             reply.Reply (Some subdirectory)
 
                             return! messageLoop newState
-                    | UpdateProgress projectId ->
+                    | StateMessage.UpdateProgress projectId ->
                         let progress = UpdateProgressBarAmount oldState.ProgressBarState
 
                         let finishedMod = 
@@ -100,12 +100,12 @@ type Modpack(app: Application) as this =
                         this.Mods <- newState.Mods
 
                         return! messageLoop newState
-                    | AddMod (modName, projectId) ->
+                    | StateMessage.AddMod (modName, projectId) ->
                         let newState = { oldState with Mods = { Name = modName; Link = String.Empty; ProjectId = projectId; Completed = false } :: oldState.Mods }
                         this.Mods <- newState.Mods
 
                         return! messageLoop newState
-                    | FinishDownload ->
+                    | StateMessage.FinishDownload ->
                         this.ProgressBarState <- Disabled
                         return! messageLoop oldState
                 }
@@ -123,6 +123,9 @@ type Modpack(app: Application) as this =
     let mutable mods = [{ Link = String.Empty; Name = String.Empty; Completed = false; ProjectId = 0 }]
     let mutable modCount = 0
     let mutable progressBarState = Disabled
+
+    member this.UpdateModpackLink (link: string) =
+        this.ModpackLink <- ViewActor.UpdateLoop.PostAndReply (fun reply -> UpdateModpackLink (link, reply))
 
     member this.StateAgent = updateLoop
 
@@ -168,7 +171,7 @@ type Modpack(app: Application) as this =
 
             let modName = (html.CssSelect("h1.project-title > a > span")).[0].InnerText
 
-            this.StateAgent.Post (AddMod (modName (), file.ProjectId))
+            this.StateAgent.Post (StateMessage.AddMod (modName (), file.ProjectId))
 
             let fileUrl = sprintf "%A/files/%i/download" projectResponse.responseUri file.FileId
 
@@ -184,7 +187,7 @@ type Modpack(app: Application) as this =
                 )
             )
 
-            this.StateAgent.Post (UpdateProgress file.ProjectId)
+            this.StateAgent.Post (StateMessage.UpdateProgress file.ProjectId)
         }
 
     member this.CreateMultiMc location manifestFile =

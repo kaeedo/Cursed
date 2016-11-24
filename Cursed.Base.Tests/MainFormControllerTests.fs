@@ -1,5 +1,4 @@
 ﻿namespace Cursed.Base.Tests
-
 open Cursed.Base
 
 open NUnit.Framework

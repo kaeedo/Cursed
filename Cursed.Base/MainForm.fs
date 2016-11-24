@@ -29,7 +29,7 @@ type MainForm(app: Application) =
             let openSelectFolderHandler _ =
                 let folderDialog = new SelectFolderDialog()
                 folderDialog.ShowDialog(app.Windows |> Seq.head) |> ignore
-                modpack.StateAgent.Post (SetExtractLocation folderDialog.Directory)
+                modpack.StateAgent.Post (StateMessage.SetExtractLocation folderDialog.Directory)
             
             Observable.subscribe openSelectFolderHandler button.MouseDown |> ignore
 
@@ -42,7 +42,7 @@ type MainForm(app: Application) =
         let urlInputTextBox = 
             let textBox = new TextBox()
             let onInput _ = 
-                modpack.StateAgent.Post (UpdateModpackLink textBox.Text)
+                modpack.StateAgent.Post (StateMessage.UpdateModpackLink textBox.Text)
             
             Observable.subscribe onInput textBox.TextChanged |> ignore
             textBox
@@ -74,7 +74,7 @@ type MainForm(app: Application) =
                             |> ignore
 
                             app.Invoke (fun () -> MessageBox.Show(sprintf "To create a MultiMC instance, you must install Forge version: %s" forge, MessageBoxType.Information) |> ignore)
-                            modpack.StateAgent.Post FinishDownload
+                            modpack.StateAgent.Post StateMessage.FinishDownload
                     }
                     |> start
 
