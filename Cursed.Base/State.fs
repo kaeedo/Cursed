@@ -3,14 +3,6 @@ open FSharp.Data
 
 type ModpackManifest = JsonProvider<"./SampleManifest.json">
 
-type StateMessage =
-| UpdateModpackLink of string
-| SetExtractLocation of string
-| DownloadZip of AsyncReplyChannel<string option>
-| UpdateProgress of int
-| AddMod of string * int
-| FinishDownload
-
 type ProgressBarState =
 | Indeterminate
 | Progress of int

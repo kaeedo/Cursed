@@ -62,6 +62,7 @@
     <Compile Include="MainFormControllerTests.fs" />
     <None Include="paket.references" />
     <Content Include="App.config" />
+    <Compile Include="Actors\ViewActorTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="mscorlib" />
