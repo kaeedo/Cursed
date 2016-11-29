@@ -56,6 +56,12 @@ let UpdateLoop =
 
                     reply.Reply newState.ProgressBarState
                     return! messageLoop newState
+                | Restart ->
+                    return! messageLoop { ModpackLink = String.Empty
+                                          ExtractLocation = String.Empty
+                                          Mods = []
+                                          ModCount = 0
+                                          ProgressBarState = Disabled }
             }
 
         messageLoop { ModpackLink = String.Empty

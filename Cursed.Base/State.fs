@@ -28,3 +28,4 @@ type StateReplyMessage =
 | AddMod of string * int * AsyncReplyChannel<Mod list>
 | UpdateModpackInformation of int * AsyncReplyChannel<int * ProgressBarState>
 | FinishDownload of AsyncReplyChannel<ProgressBarState>
+| Restart
