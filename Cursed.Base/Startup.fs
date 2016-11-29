@@ -2,7 +2,6 @@
 
 open FSharp.Data
 open Hopac
-open System.Data.SQLite
 open System
 open System.Reflection
 
@@ -25,6 +24,3 @@ module Startup =
 
             return latestVersion.CompareTo(getCurrentVersion) <= 0
         }
-
-    let Create =
-        SQLiteConnection.CreateFile(@"C:\Users\Kai\Desktop\Cursed.db")

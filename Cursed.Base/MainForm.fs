@@ -130,7 +130,6 @@ type MainForm(app: Application) =
         base.Title <- "Cursed"
 
         job {
-            Startup.Create
             let! isLatest = Startup.IsLatest
 
             app.Invoke (fun () ->
