@@ -6,8 +6,8 @@ open System.Data.SQLite
 open System
 open System.Reflection
 
-type Startup() =
-    let getLatestVersion = 
+module Startup =
+    let private getLatestVersion = 
         job {
             let html = new HtmlProvider<"https://kaeedo.github.io/Cursed/">()
             let version = html.Html.CssSelect("#latestRelease").Head.AttributeValue("value")
@@ -15,10 +15,10 @@ type Startup() =
             return version
         }
     
-    let getCurrentVersion =
+    let private getCurrentVersion =
         Assembly.GetExecutingAssembly().GetName().Version
 
-    member this.IsLatest =
+    let IsLatest =
         job {
             let! latest = getLatestVersion
             let latestVersion = new Version(latest)
@@ -26,5 +26,5 @@ type Startup() =
             return latestVersion.CompareTo(getCurrentVersion) <= 0
         }
 
-    member this.Create =
+    let Create =
         SQLiteConnection.CreateFile(@"C:\Users\Kai\Desktop\Cursed.db")

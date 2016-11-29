@@ -130,9 +130,8 @@ type MainForm(app: Application) =
         base.Title <- "Cursed"
 
         job {
-            let startup = new Startup()
-            startup.Create
-            let! isLatest = startup.IsLatest
+            Startup.Create
+            let! isLatest = Startup.IsLatest
 
             app.Invoke (fun () ->
                 if not isLatest then
