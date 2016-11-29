@@ -11,6 +11,9 @@ nuget Eto.Platform.Wpf
 nuget FSharp.Data
 nuget FSharp.Core redirects: force 
 nuget Http.fs
+nuget SQLProvider
+nuget System.Data.SQLite
+
 nuget NUnit
 nuget Unquote
 nuget NUnit.Console

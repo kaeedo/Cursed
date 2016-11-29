@@ -2,3 +2,5 @@ Eto.Forms
 FSharp.Data
 FSharp.Core
 Http.fs
+System.Data.SQLite
+SQLProvider

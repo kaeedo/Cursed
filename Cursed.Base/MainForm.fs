@@ -58,24 +58,10 @@ type MainForm(app: Application) =
                     MessageBox.Show("Please input the link to the Modpack", MessageBoxType.Warning) |> ignore
                 else
                     job {
-                        let modpackLocation = modpack.DownloadZip
-
-                        match modpackLocation with
-                        | None -> MessageBox.Show("Something went wrong", MessageBoxType.Error) |> ignore
-                        | Some location ->
-                            let manifestFile = File.ReadAllLines(location @@ "manifest.json") |> Seq.reduce (+)
-                            let manifest = ModpackManifest.Parse(manifestFile)
-                            let forge = CreateMultiMc location manifestFile
-
-                            manifest.Files
-                            |> List.ofSeq
-                            |> List.map (modpack.DownloadMod location)
-                            |> Job.conCollect
-                            |> run
-                            |> ignore
-
-                            app.Invoke (fun () -> MessageBox.Show(sprintf "To create a MultiMC instance, you must install Forge version: %s" forge, MessageBoxType.Information) |> ignore)
-                            modpack.FinishDownload
+                        let forgeVersion = DownloadModpack modpack
+                        match forgeVersion with
+                        | Some forge -> app.Invoke (fun () -> MessageBox.Show(sprintf "To create a MultiMC instance, you must install Forge version: %s" forge, MessageBoxType.Information) |> ignore)
+                        | None -> app.Invoke (fun () -> MessageBox.Show("Something went wrong", MessageBoxType.Error) |> ignore)
                     }
                     |> start
 
@@ -104,7 +90,7 @@ type MainForm(app: Application) =
         progressBar.BindDataContext<int>(maxValueBinding, progressBarMaxValueBinding) |> ignore
         
         let progressBinding = Binding.Property(fun (pb: ProgressBar) -> pb.Value) 
-        let progressBarProgressBinding = Binding.Property(fun (m: Modpack) -> m.ProgressBarState).Convert(fun progress -> getProgress progress)
+        let progressBarProgressBinding = Binding.Property(fun (m: Modpack) -> m.ProgressBarState).Convert(fun progress -> GetProgress progress)
         progressBar.BindDataContext<int>(progressBinding, progressBarProgressBinding) |> ignore
         
 
@@ -114,7 +100,7 @@ type MainForm(app: Application) =
         let listBox = new ListBox()
         
         let dataStoreBinding = Binding.Property(fun (lb: ListBox) -> lb.DataStore) 
-        let modsBinding = Binding.Property(fun (m: Modpack) -> m.Mods).Convert(fun mods -> getIncompleteMods mods)
+        let modsBinding = Binding.Property(fun (m: Modpack) -> m.Mods).Convert(fun mods -> GetIncompleteMods mods)
         listBox.BindDataContext<seq<obj>>(dataStoreBinding, modsBinding) |> ignore
 
         listBox.Height <- 500
@@ -129,7 +115,7 @@ type MainForm(app: Application) =
         let listBox = new ListBox()
         
         let dataStoreBinding = Binding.Property(fun (lb: ListBox) -> lb.DataStore) 
-        let modsBinding = Binding.Property(fun (m: Modpack) -> m.Mods).Convert(fun mods -> getCompletedMods mods)
+        let modsBinding = Binding.Property(fun (m: Modpack) -> m.Mods).Convert(fun mods -> GetCompletedMods mods)
         listBox.BindDataContext<seq<obj>>(dataStoreBinding, modsBinding) |> ignore
 
         listBox.Height <- 500
@@ -145,7 +131,7 @@ type MainForm(app: Application) =
 
         job {
             let startup = new Startup()
-
+            startup.Create
             let! isLatest = startup.IsLatest
 
             app.Invoke (fun () ->
