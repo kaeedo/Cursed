@@ -8,6 +8,7 @@ open Operators
 open Hopac
 
 open MainFormController
+open ModpackController
 
 type MainForm(app: Application) = 
     inherit Form()
@@ -29,7 +30,7 @@ type MainForm(app: Application) =
             let openSelectFolderHandler _ =
                 let folderDialog = new SelectFolderDialog()
                 folderDialog.ShowDialog(app.Windows |> Seq.head) |> ignore
-                modpack.StateAgent.Post (StateMessage.SetExtractLocation folderDialog.Directory)
+                modpack.SetExtractLocation folderDialog.Directory
             
             Observable.subscribe openSelectFolderHandler button.MouseDown |> ignore
 
@@ -42,7 +43,7 @@ type MainForm(app: Application) =
         let urlInputTextBox = 
             let textBox = new TextBox()
             let onInput _ = 
-                modpack.StateAgent.Post (StateMessage.UpdateModpackLink textBox.Text)
+                modpack.UpdateModpackLink textBox.Text
             
             Observable.subscribe onInput textBox.TextChanged |> ignore
             textBox
@@ -57,24 +58,24 @@ type MainForm(app: Application) =
                     MessageBox.Show("Please input the link to the Modpack", MessageBoxType.Warning) |> ignore
                 else
                     job {
-                        let! modpackLocation = modpack.StateAgent.PostAndAsyncReply DownloadZip
+                        let modpackLocation = modpack.DownloadZip
 
                         match modpackLocation with
                         | None -> MessageBox.Show("Something went wrong", MessageBoxType.Error) |> ignore
-                        | Some ml ->
-                            let manifestFile = File.ReadAllLines(ml @@ "manifest.json") |> Seq.reduce (+)
+                        | Some location ->
+                            let manifestFile = File.ReadAllLines(location @@ "manifest.json") |> Seq.reduce (+)
                             let manifest = ModpackManifest.Parse(manifestFile)
-                            let forge = modpack.CreateMultiMc ml manifestFile
+                            let forge = CreateMultiMc location manifestFile
 
                             manifest.Files
                             |> List.ofSeq
-                            |> List.map (modpack.DownloadMod ml)
+                            |> List.map (modpack.DownloadMod location)
                             |> Job.conCollect
                             |> run
                             |> ignore
 
                             app.Invoke (fun () -> MessageBox.Show(sprintf "To create a MultiMC instance, you must install Forge version: %s" forge, MessageBoxType.Information) |> ignore)
-                            modpack.StateAgent.Post StateMessage.FinishDownload
+                            modpack.FinishDownload
                     }
                     |> start
 

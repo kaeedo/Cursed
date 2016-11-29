@@ -81,3 +81,22 @@ module ModpackController =
         }
         |> Job.catch
         |> run
+
+    let CreateMultiMc location manifestFile =
+        job {
+            let directory = new DirectoryInfo(location)
+            let outFile = new StreamWriter(directory.Parent.FullName @@ "instance.cfg")
+
+            let manifest = ModpackManifest.Parse(manifestFile)
+            let forge = manifest.Minecraft.ModLoaders.[0].Id
+
+            CreateMultiMcInstance manifest.Version manifest.Name manifest.Author forge
+            |> Seq.iter (fun setting ->
+                outFile.WriteLine(sprintf "%s=%s" setting.Key setting.Value)
+            )
+
+            outFile.Flush()
+
+            return forge
+        }
+        |> run

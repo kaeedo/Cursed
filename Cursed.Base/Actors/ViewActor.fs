@@ -46,6 +46,11 @@ let UpdateLoop =
 
                     reply.Reply newState.Mods
                     return! messageLoop newState
+                | UpdateModpackInformation (count, reply) ->
+                    let newState = { oldState with ModCount = count; ProgressBarState = Indeterminate }
+
+                    reply.Reply (count, Indeterminate)
+                    return! messageLoop newState
                 | FinishDownload reply ->
                     let newState = { oldState with ProgressBarState = Disabled}
 

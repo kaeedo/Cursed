@@ -34,4 +34,5 @@ type StateReplyMessage =
 | SetExtractLocation of string * AsyncReplyChannel<string>
 | UpdateProgress of int * AsyncReplyChannel<ProgressBarState * Mod list>
 | AddMod of string * int * AsyncReplyChannel<Mod list>
+| UpdateModpackInformation of int * AsyncReplyChannel<int * ProgressBarState>
 | FinishDownload of AsyncReplyChannel<ProgressBarState>
