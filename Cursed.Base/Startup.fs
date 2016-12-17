@@ -19,8 +19,6 @@ module Startup =
     let private getCurrentVersion =
         Assembly.GetExecutingAssembly().GetName().Version
 
-    
-
     let IsLatest =
         job {
             let! latest = getLatestVersion

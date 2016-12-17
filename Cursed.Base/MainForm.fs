@@ -9,6 +9,7 @@ open Hopac
 
 open MainFormController
 open ModpackController
+open DataAccess
 
 
 type MainForm(app: Application) = 
@@ -136,6 +137,8 @@ type MainForm(app: Application) =
             )
         }
         |> start
+
+        EnsureFile CacheFileLocation
 
         let dynamicLayout =
             let layout = new DynamicLayout()
