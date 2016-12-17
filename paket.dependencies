@@ -11,6 +11,7 @@ nuget Eto.Platform.Wpf
 nuget FSharp.Data
 nuget FSharp.Core redirects: force 
 nuget Http.fs
+nuget Newtonsoft.Json
 
 nuget NUnit
 nuget Unquote

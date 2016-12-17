@@ -11,7 +11,7 @@ open FSharp.Data
 open Hopac
 open HttpFs.Client
 open Eto.Forms
-open Operators
+open Common
 open ModpackController
 
 type ModpackBase() =

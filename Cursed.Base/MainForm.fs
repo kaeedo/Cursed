@@ -4,11 +4,12 @@ open System
 open System.IO
 open Eto.Forms
 open Eto.Drawing
-open Operators
+open Common
 open Hopac
 
 open MainFormController
 open ModpackController
+
 
 type MainForm(app: Application) = 
     inherit Form()
@@ -23,7 +24,6 @@ type MainForm(app: Application) =
             ), DualBindingMode.OneWay) |> ignore
             label
             
-
         let openSelectFolderButton = 
             let button = new Button(Text = "Extract Location")
 
@@ -127,19 +127,15 @@ type MainForm(app: Application) =
         layout
 
     do 
-        base.Title <- "Cursed"
-
         job {
             let! isLatest = Startup.IsLatest
 
             app.Invoke (fun () ->
-                if not isLatest then
+                if isLatest then
                     app.MainForm.Title <- sprintf "Cursed - Update Available"
             )
         }
         |> start
-
-        base.ClientSize <- new Size(900, 600)
 
         let dynamicLayout =
             let layout = new DynamicLayout()
@@ -166,5 +162,7 @@ type MainForm(app: Application) =
         dynamicLayout.Add(progressBar) |> ignore
         dynamicLayout.Add(modListsDynamicLayout) |> ignore
 
+        base.Title <- "Cursed"
+        base.ClientSize <- new Size(900, 600)
         base.Content <- dynamicLayout
         base.DataContext <- modpack

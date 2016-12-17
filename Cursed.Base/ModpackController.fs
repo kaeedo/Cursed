@@ -3,7 +3,7 @@
 open System
 open System.IO
 open System.IO.Compression
-open Operators
+open Common
 open Hopac
 open HttpFs.Client
 
@@ -60,24 +60,17 @@ module ModpackController =
         job {
             let modpackLink = if link.EndsWith("/", StringComparison.OrdinalIgnoreCase) then link.Substring(0, link.Length) else link
             let fileUrl = modpackLink + "/files/latest"
-        
-            let homePath =
-                match Environment.OSVersion.Platform with
-                | PlatformID.Unix -> Environment.GetEnvironmentVariable("HOME")
-                | PlatformID.MacOSX -> Environment.GetEnvironmentVariable("HOME")
-                | _ -> Environment.GetFolderPath(Environment.SpecialFolder.Personal)
 
             use! response =
                 Request.create Get (Uri fileUrl)
                 |> getResponse
 
             let zipName = Uri.UnescapeDataString(response.responseUri.Segments |> Array.last)
-            let zipLocation = homePath @@ ".cursedTemp"
 
-            use fileStream = new FileStream(zipLocation @@ zipName, FileMode.Create)
+            use fileStream = new FileStream(HomePath @@ zipName, FileMode.Create)
             do! response.body.CopyToAsync fileStream |> Job.awaitUnitTask
 
-            return zipName, zipLocation
+            return zipName, HomePath
         }
         |> Job.catch
         |> run

@@ -1,0 +1,30 @@
+﻿[
+    {
+        "Id": 1,
+        "Name": "Test",
+        "Files": [
+            {
+                "Id": 123,
+                "Version": "someVersion"
+            },
+            {
+                "Id": 14534,
+                "Version": "fekj herkgj e r"
+            }
+        ]
+    },
+    {
+        "Id": 2,
+        "Name": "Mod",
+        "Files": [
+            {
+                "Id": 9789,
+                "Version": "qwerqwer"
+            },
+            {
+                "Id": 978978,
+                "Version": "asdfasdf"
+            }
+        ]
+    }
+]

@@ -5,6 +5,8 @@ open Hopac
 open System
 open System.Reflection
 
+
+
 module Startup =
     let private getLatestVersion = 
         job {
@@ -17,6 +19,8 @@ module Startup =
     let private getCurrentVersion =
         Assembly.GetExecutingAssembly().GetName().Version
 
+    
+
     let IsLatest =
         job {
             let! latest = getLatestVersion
@@ -24,3 +28,4 @@ module Startup =
 
             return latestVersion.CompareTo(getCurrentVersion) <= 0
         }
+    

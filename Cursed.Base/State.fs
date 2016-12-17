@@ -29,3 +29,12 @@ type StateReplyMessage =
 | UpdateModpackInformation of int * AsyncReplyChannel<int * ProgressBarState>
 | FinishDownload of AsyncReplyChannel<ProgressBarState>
 | Restart
+
+type ModFile =
+    { Id: int
+      Version: string }
+
+type Project =
+    { Id: int
+      Name: string
+      Files: ModFile array }

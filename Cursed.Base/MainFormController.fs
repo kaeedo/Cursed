@@ -2,7 +2,7 @@
 
 open System.IO
 open Hopac
-open Operators
+open Common
 open ModpackController
 
 module MainFormController =
