@@ -44,36 +44,21 @@ type Modpack(app: Application) as this =
     let mutable progressBarState = Disabled
 
     member this.UpdateModpackLink link =
-        job {
-            this.ModpackLink <- ViewActor.UpdateLoop.PostAndReply (fun reply -> UpdateModpackLink (link, reply))
-        }
-        |> start
+        this.ModpackLink <- ViewActor.UpdateLoop.PostAndReply (fun reply -> UpdateModpackLink (link, reply))
 
     member this.SetExtractLocation link =
-        job {
-            this.ExtractLocation <- ViewActor.UpdateLoop.PostAndReply (fun reply -> SetExtractLocation (link, reply))
-        }
-        |> start
+        this.ExtractLocation <- ViewActor.UpdateLoop.PostAndReply (fun reply -> SetExtractLocation (link, reply))
 
     member this.UpdateProgress projectId =
-        job {
-            let progressBarState, mods = ViewActor.UpdateLoop.PostAndReply (fun reply -> UpdateProgress (projectId, reply))
-            this.ProgressBarState <- progressBarState
-            this.Mods <- mods
-        }
-        |> start
+        let progressBarState, mods = ViewActor.UpdateLoop.PostAndReply (fun reply -> UpdateProgress (projectId, reply))
+        this.ProgressBarState <- progressBarState
+        this.Mods <- mods
 
     member this.AddMod (modName, projectId) =
-        job {
-            this.Mods <- ViewActor.UpdateLoop.PostAndReply (fun reply -> AddMod (modName, projectId, reply))
-        }
-        |> start
+        this.Mods <- ViewActor.UpdateLoop.PostAndReply (fun reply -> AddMod (modName, projectId, reply))
 
     member this.FinishDownload =
-        job {
-            this.ProgressBarState <- ViewActor.UpdateLoop.PostAndReply FinishDownload
-        }
-        |> start
+        this.ProgressBarState <- ViewActor.UpdateLoop.PostAndReply FinishDownload
 
     member this.ModpackLink
         with get() = modpackLink
@@ -146,12 +131,9 @@ type Modpack(app: Application) as this =
             let manifestFile = File.ReadAllLines(subdirectory @@ "manifest.json") |> Seq.reduce (+)
             let manifest = ModpackManifest.Parse(manifestFile)
 
-            job {
-                let modCount, progressBarState = ViewActor.UpdateLoop.PostAndReply (fun reply -> UpdateModpackInformation (manifest.Files.Length, reply))
-                this.ModCount <- modCount
-                this.ProgressBarState <- progressBarState
-            }
-            |> start
+            let modCount, progressBarState = ViewActor.UpdateLoop.PostAndReply (fun reply -> UpdateModpackInformation (manifest.Files.Length, reply))
+            this.ModCount <- modCount
+            this.ProgressBarState <- progressBarState
 
             DirectoryCopy (subdirectory @@ "overrides") subdirectory
             Some subdirectory
