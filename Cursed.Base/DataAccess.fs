@@ -4,6 +4,7 @@ module DataAccess =
     open Common
     open System.IO
     open System.Text
+    open System.Collections.Generic
     open Newtonsoft.Json
     
     let private cacheFileLocation = HomePath @@ "cache.txt"
@@ -25,9 +26,12 @@ module DataAccess =
     let Save cache =
         File.WriteAllText(cacheFileLocation, JsonConvert.SerializeObject(cache), Encoding.UTF8)
 
-    let LoadCache =
+    let LoadCache () =
         ensureFile cacheFileLocation
         let cache = File.ReadAllText(cacheFileLocation, Encoding.UTF8)
-        let projects = JsonConvert.DeserializeObject<Project list>(cache)
-
-        CacheActor.FileLoop.Post <| Load projects
+        let projects = JsonConvert.DeserializeObject<IList<Project>>(cache)
+        
+        if isNull projects then
+            CacheActor.FileLoop.Post <| Load []
+        else
+            CacheActor.FileLoop.Post <| Load (projects |> List.ofSeq)

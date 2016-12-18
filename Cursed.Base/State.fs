@@ -23,13 +23,12 @@ type AppState =
 
 type ModFile =
     { Id: int
-      Version: string }
+      FileName: string }
 
 type Project =
     { Id: int
       Name: string
-      Files: ModFile array }
-
+      Files: ModFile list }
 
 type StateReplyMessage =
 | UpdateModpackLink of string * AsyncReplyChannel<string>
@@ -43,5 +42,6 @@ type StateReplyMessage =
 type FileReplyMessage =
 | SaveProject of Project
 | SaveMod of projectId: int * ModFile
+| GetCache of AsyncReplyChannel<Project list>
 | Load of Project list
 | Restart

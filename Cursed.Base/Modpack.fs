@@ -13,6 +13,7 @@ open HttpFs.Client
 open Eto.Forms
 open Common
 open ModpackController
+open DataAccess
 
 type ModpackBase() =
     let propertyChanged = new Event<_, _>()
@@ -90,6 +91,12 @@ type Modpack(app: Application) as this =
             app.Invoke (fun () -> this.OnPropertyChanged <@ this.ProgressBarState @>)
 
     member this.DownloadMod location (file: ModpackManifest.File) =
+        let saveToCache projectId modName fileId fileName =
+            CacheActor.FileLoop.Post <| SaveProject { Id = projectId; Name = modName; Files = [] }
+            CacheActor.FileLoop.Post <| SaveMod (projectId, { Id = fileId; FileName = fileName })
+            let cache = CacheActor.FileLoop.PostAndReply GetCache
+            Save cache
+
         job {
             let projectResponse =
                 Request.create Get (Uri <| sprintf "http://minecraft.curseforge.com/projects/%i" file.ProjectId)
@@ -99,14 +106,18 @@ type Modpack(app: Application) as this =
             let link = projectResponse.responseUri.ToString()
             let html = HtmlDocument.Load(link)
 
-            let modName = (html.CssSelect("h1.project-title > a > span")).[0].InnerText
+            let modName = 
+                let modNameHtml = (html.CssSelect("h1.project-title > a > span")).[0].InnerText
+                modNameHtml ()
 
-            this.AddMod (modName (), file.ProjectId)
+            this.AddMod (modName, file.ProjectId)
 
             let fileUrl = sprintf "%A/files/%i/download" projectResponse.responseUri file.FileId
 
             using(Request.create Get (Uri fileUrl) |> getResponse |> run) (fun r ->
                 let fileName = Uri.UnescapeDataString(r.responseUri.Segments |> Array.last)
+                
+                saveToCache file.ProjectId modName file.FileId fileName
 
                 let modsDirectory = location @@ "mods"
                 Directory.CreateDirectory(modsDirectory) |> ignore

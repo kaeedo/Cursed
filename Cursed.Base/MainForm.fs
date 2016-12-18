@@ -136,6 +136,8 @@ type MainForm(app: Application) =
         }
         |> start
 
+        DataAccess.LoadCache ()
+
         let dynamicLayout =
             let layout = new DynamicLayout()
             layout.BeginVertical() |> ignore
