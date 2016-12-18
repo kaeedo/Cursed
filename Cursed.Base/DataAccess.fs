@@ -6,25 +6,28 @@ module DataAccess =
     open System.Text
     open Newtonsoft.Json
     
-    let CacheFileLocation = HomePath @@ "cache.txt"
+    let private cacheFileLocation = HomePath @@ "cache.txt"
 
-    let EnsureDirectory directoryPath =
+    let private ensureDirectory directoryPath =
         let directory = new DirectoryInfo(directoryPath)
         if not directory.Exists then
             directory.Create()
 
-    let EnsureFile fileName =
+    let private ensureFile fileName =
         let file = new FileInfo(fileName)
 
-        EnsureDirectory <| file.DirectoryName
+        ensureDirectory <| file.DirectoryName
 
         if not file.Exists then
             let newFile = file.Create()
             newFile.Close()
 
     let Save cache =
-        File.WriteAllText(CacheFileLocation, JsonConvert.SerializeObject(cache), Encoding.UTF8)
+        File.WriteAllText(cacheFileLocation, JsonConvert.SerializeObject(cache), Encoding.UTF8)
 
-    let Load () =
-        let cache = File.ReadAllText(CacheFileLocation, Encoding.UTF8)
-        JsonConvert.DeserializeObject<Project list>(cache)
+    let LoadCache =
+        ensureFile cacheFileLocation
+        let cache = File.ReadAllText(cacheFileLocation, Encoding.UTF8)
+        let projects = JsonConvert.DeserializeObject<Project list>(cache)
+
+        CacheActor.FileLoop.Post <| Load projects

@@ -8,7 +8,7 @@ open Swensen.Unquote
 type ViewActorTests() = 
     [<TearDown>]
     member this.TearDown () =
-        ViewActor.UpdateLoop.Post Restart
+        ViewActor.UpdateLoop.Post StateReplyMessage.Restart
     
     [<Test>]
     member this.``When updating modpack link should reply with the new link`` () = 

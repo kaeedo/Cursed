@@ -9,8 +9,6 @@ open Hopac
 
 open MainFormController
 open ModpackController
-open DataAccess
-
 
 type MainForm(app: Application) = 
     inherit Form()
@@ -49,8 +47,8 @@ type MainForm(app: Application) =
             Observable.subscribe onInput textBox.TextChanged |> ignore
             textBox
 
-        let discoverButton = 
-            let button = new Button(Text = "Discover")
+        let downloadButton = 
+            let button = new Button(Text = "Download")
 
             let addModpackLinkHandler _ =
                 if String.IsNullOrWhiteSpace(modpack.ExtractLocation) then
@@ -58,18 +56,18 @@ type MainForm(app: Application) =
                 elif String.IsNullOrWhiteSpace(modpack.ModpackLink) then
                     MessageBox.Show("Please input the link to the Modpack", MessageBoxType.Warning) |> ignore
                 else
-                    job {
+                    async {
                         let forgeVersion = DownloadModpack modpack
                         match forgeVersion with
                         | Some forge -> app.Invoke (fun () -> MessageBox.Show(sprintf "To create a MultiMC instance, you must install Forge version: %s" forge, MessageBoxType.Information) |> ignore)
                         | None -> app.Invoke (fun () -> MessageBox.Show("Something went wrong", MessageBoxType.Error) |> ignore)
                     }
-                    |> start
+                    |> Async.Start
 
             Observable.subscribe addModpackLinkHandler button.MouseDown |> ignore
             button
 
-        new TableRow([new TableCell(urlInputLabel); new TableCell(urlInputTextBox, true); new TableCell(discoverButton)])
+        new TableRow([new TableCell(urlInputLabel); new TableCell(urlInputTextBox, true); new TableCell(downloadButton)])
 
     let progressBar =
         let progressBar = new ProgressBar()
@@ -137,8 +135,6 @@ type MainForm(app: Application) =
             )
         }
         |> start
-
-        EnsureFile CacheFileLocation
 
         let dynamicLayout =
             let layout = new DynamicLayout()

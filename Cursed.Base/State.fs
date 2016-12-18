@@ -21,6 +21,16 @@ type AppState =
       ModCount: int
       ProgressBarState: ProgressBarState }
 
+type ModFile =
+    { Id: int
+      Version: string }
+
+type Project =
+    { Id: int
+      Name: string
+      Files: ModFile array }
+
+
 type StateReplyMessage =
 | UpdateModpackLink of string * AsyncReplyChannel<string>
 | SetExtractLocation of string * AsyncReplyChannel<string>
@@ -30,11 +40,8 @@ type StateReplyMessage =
 | FinishDownload of AsyncReplyChannel<ProgressBarState>
 | Restart
 
-type ModFile =
-    { Id: int
-      Version: string }
-
-type Project =
-    { Id: int
-      Name: string
-      Files: ModFile array }
+type FileReplyMessage =
+| SaveProject of Project
+| SaveMod of projectId: int * ModFile
+| Load of Project list
+| Restart

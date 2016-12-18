@@ -56,6 +56,7 @@
     <Compile Include="State.fs" />
     <Compile Include="ModpackController.fs" />
     <Compile Include="Actors\ViewActor.fs" />
+    <Compile Include="Actors\CacheActor.fs" />
     <Compile Include="DataAccess.fs" />
     <Compile Include="Modpack.fs" />
     <Compile Include="Startup.fs" />
