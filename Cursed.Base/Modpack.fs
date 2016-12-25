@@ -97,14 +97,18 @@ type Modpack(app: Application) as this =
             let cache = CacheActor.FileLoop.PostAndReply GetCache
             Save cache
 
+        let cachedModName =
+            let cache = CacheActor.FileLoop.PostAndReply GetCache
+            cache
+            |> List.tryFind (fun p ->
+                p.Id = file.ProjectId
+            )
+
+        match cachedModName with 
+        | Some project -> this.AddMod (project.Name, project.Id)
+        | None -> ()
+
         job {
-            let cachedModName =
-                let cache = CacheActor.FileLoop.PostAndReply GetCache
-                cache
-                |> List.tryFind (fun p ->
-                    p.Id = file.ProjectId
-                )
-                
             let projectResponse =
                 Request.create Get (Uri <| sprintf "http://minecraft.curseforge.com/projects/%i" file.ProjectId)
                 |> getResponse
@@ -118,12 +122,12 @@ type Modpack(app: Application) as this =
                 | Some project -> project.Name
                 | None ->
                     let modNameHtml = (html.CssSelect("h1.project-title > a > span")).[0].InnerText
-                    modNameHtml ()
-
-            this.AddMod (modName, file.ProjectId)
+                    let name = modNameHtml()
+                    this.AddMod (name, file.ProjectId)
+                    name
 
             let fileUrl = sprintf "%A/files/%i/download" projectResponse.responseUri file.FileId
-            
+
             using(Request.create Get (Uri fileUrl) |> getResponse |> run) (fun r ->
                 let fileName = Uri.UnescapeDataString(r.responseUri.Segments |> Array.last)
                 
