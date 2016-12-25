@@ -38,7 +38,7 @@ module MainFormController =
             let manifest = ModpackManifest.Parse(manifestFile)
             let forge = CreateMultiMc location manifestFile
 
-            manifest.Files.[..3]
+            manifest.Files
             |> List.ofSeq
             |> List.map (modpack.DownloadMod location)
             |> Job.conCollect

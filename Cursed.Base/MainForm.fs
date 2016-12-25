@@ -126,16 +126,6 @@ type MainForm(app: Application) =
         layout
 
     do 
-        job {
-            let! isLatest = Startup.IsLatest
-
-            app.Invoke (fun () ->
-                if isLatest then
-                    app.MainForm.Title <- sprintf "Cursed - Update Available"
-            )
-        }
-        |> start
-
         DataAccess.LoadCache ()
 
         let dynamicLayout =
@@ -167,3 +157,13 @@ type MainForm(app: Application) =
         base.ClientSize <- new Size(900, 600)
         base.Content <- dynamicLayout
         base.DataContext <- modpack
+
+        job {
+            let! isLatest = Startup.IsLatest
+
+            if not isLatest then
+                app.Invoke (fun () ->
+                    app.MainForm.Title <- sprintf "Cursed - Update Available"
+                )
+        }
+        |> start
