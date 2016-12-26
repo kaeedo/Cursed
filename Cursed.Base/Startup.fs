@@ -9,7 +9,7 @@ open System.Reflection
 
 module Startup =
     let private getLatestVersion = 
-        job {
+        async {
             let html = new HtmlProvider<"https://kaeedo.github.io/Cursed/">()
             let version = html.Html.CssSelect("#latestRelease").Head.AttributeValue("value")
 
@@ -20,7 +20,7 @@ module Startup =
         Assembly.GetExecutingAssembly().GetName().Version
 
     let IsLatest =
-        job {
+        async {
             let! latest = getLatestVersion
             let latestVersion = new Version(latest)
 

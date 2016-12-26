@@ -158,7 +158,7 @@ type MainForm(app: Application) =
         base.Content <- dynamicLayout
         base.DataContext <- modpack
 
-        job {
+        async {
             let! isLatest = Startup.IsLatest
 
             if not isLatest then
@@ -166,4 +166,4 @@ type MainForm(app: Application) =
                     app.MainForm.Title <- sprintf "Cursed - Update Available"
                 )
         }
-        |> start
+        |> Async.Start

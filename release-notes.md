@@ -1,3 +1,6 @@
+## New in 1.2.1 (Release 2016/12/26)
+* Fix latest version check
+
 ## New in 1.2.0 (Release 2016/12/26)
 * Cache names of mods for quick view of incomplete mods
 
