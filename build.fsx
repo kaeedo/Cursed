@@ -4,12 +4,15 @@ open Fake
 open Fake.Testing
 open Fake.AssemblyInfoFile
 
-let buildDir = "./build/"
+open FSharp.Data
+
+let buildDir = "." @@ "build"
 let testDir = buildDir @@ "test"
 let releaseNotes = ReadFile "release-notes.md" |> ReleaseNotesHelper.parseReleaseNotes
 
 Target "SetVersion" (fun _ ->
     CreateFSharpAssemblyInfo ("." @@ "Cursed.Base" @@ "AssemblyInfo.fs") [Attribute.Version releaseNotes.AssemblyVersion]
+    CreateFSharpAssemblyInfo ("." @@ "Cursed" @@ "AssemblyInfo.fs") [Attribute.Version releaseNotes.AssemblyVersion]
 )
 
 Target "Clean" (fun _ ->
@@ -21,7 +24,7 @@ Target "Build" (fun _ ->
 
     ["./Cursed/Cursed.fsproj"]
     |> MSBuildRelease buildDir "Build"
-    |> List.iter trace
+    |> ignore
 
     ["./Cursed.sln"]
     |> MSBuildDebug testDir "Build"
