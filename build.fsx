@@ -5,33 +5,46 @@ open Fake.Testing
 open Fake.AssemblyInfoFile
 
 let buildDir = "./build/"
+let testDir = buildDir @@ "test"
+let releaseNotes = ReadFile "release-notes.md" |> ReleaseNotesHelper.parseReleaseNotes
 
 Target "SetVersion" (fun _ ->
-    let releaseNotes = ReadFile "release-notes.md" |> ReleaseNotesHelper.parseReleaseNotes
-
     CreateFSharpAssemblyInfo ("." @@ "Cursed.Base" @@ "AssemblyInfo.fs") [Attribute.Version releaseNotes.AssemblyVersion]
 )
 
 Target "Clean" (fun _ ->
-    CleanDirs [ buildDir ]
+    CleanDirs [ testDir; buildDir ]
 )
 
 Target "Build" (fun _ ->
     ensureDirectory buildDir
 
+    ["./Cursed/Cursed.fsproj"]
+    |> MSBuildRelease buildDir "Build"
+    |> List.iter trace
+
     ["./Cursed.sln"]
-    |> MSBuildDebug buildDir "Build"
+    |> MSBuildDebug testDir "Build"
     |> ignore
 )
 
 Target "UnitTests" (fun _ ->
-    !! (buildDir + "/*.Tests.dll")
+    !! (testDir + "/*.Tests.dll")
     |> NUnit3 id
+)
+
+Target "Pack" (fun _ ->
+    let files =
+        !! ("*.exe") ++ ("*.dll") ++ ("*.config")
+        |> SetBaseDir buildDir
+    
+    CreateZipOfIncludes (sprintf "Cursed_%s.zip" releaseNotes.AssemblyVersion) "" 0 [ "", files ]
 )
 
 "Clean"
     ==> "SetVersion"
     ==> "Build"
     ==> "UnitTests"
+    ==> "Pack"
 
-RunTargetOrDefault "UnitTests"
+RunTargetOrDefault "Pack"

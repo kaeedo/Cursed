@@ -16,4 +16,7 @@ Cursed.userprefs
 /Cursed/Mac/MyApp.app/MacAppTemplate.app/Contents
 /Cursed.Base.Tests/bin/Debug
 /Cursed.Base.Tests/obj/Debug
+/Cursed.Base.Tests/bin/Release
+/Cursed.Base.Tests/obj/Release
 /TestResult.xml
+Cursed*.zip

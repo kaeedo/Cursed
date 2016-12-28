@@ -1,0 +1,30 @@
+﻿{
+  "minecraft": {
+    "version": "1.10.2string",
+    "modLoaders": [
+      {
+        "id": "forge-12.18.1.2065",
+        "primary": true
+      }
+    ]
+  },
+  "manifestType": "minecraftModpack",
+  "manifestVersion": 1,
+  "name": "All the Mods",
+  "version": "allthemods 1.10.2 v1.13c",
+  "author": "whatthedrunk",
+  "projectID": 242462,
+  "files": [
+    {
+      "projectID": 238222,
+      "fileID": 2323888,
+      "required": true
+    },
+    {
+      "projectID": 240566,
+      "fileID": 2309899,
+      "required": true
+    }
+  ],
+  "overrides": "overrides"
+}
