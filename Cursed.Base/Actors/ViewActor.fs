@@ -3,6 +3,14 @@
 module ViewActor =
     open System
 
+    let initialState =
+        { ModpackLink = String.Empty
+          ExtractLocation = String.Empty
+          Mods = []
+          ModCount = 0
+          ProgressBarState = Disabled
+          Versions = new Version("1.0.0"), new Version("1.0.0") }
+
     let UpdateLoop =
         let inboxHandler (inbox: MailboxProcessor<StateReplyMessage>) =
             let rec messageLoop oldState =
@@ -56,18 +64,15 @@ module ViewActor =
 
                         reply.Reply newState.ProgressBarState
                         return! messageLoop newState
+                    | SetVersions (current, latest, reply) ->
+                        let newState = { oldState with Versions = current, latest }
+
+                        reply.Reply newState.Versions
+                        return! messageLoop newState
                     | StateReplyMessage.Restart ->
-                        return! messageLoop { ModpackLink = String.Empty
-                                              ExtractLocation = String.Empty
-                                              Mods = []
-                                              ModCount = 0
-                                              ProgressBarState = Disabled }
+                        return! messageLoop initialState
                 }
 
-            messageLoop { ModpackLink = String.Empty
-                          ExtractLocation = String.Empty
-                          Mods = []
-                          ModCount = 0
-                          ProgressBarState = Disabled }
+            messageLoop initialState
 
         MailboxProcessor.Start(inboxHandler)
