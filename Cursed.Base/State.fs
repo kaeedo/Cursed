@@ -1,6 +1,5 @@
 ﻿namespace Cursed.Base
 open FSharp.Data
-open System
 
 type ModpackManifest = JsonProvider<"./SampleManifest.json">
 
@@ -20,8 +19,7 @@ type AppState =
       ExtractLocation: string
       Mods: Mod list
       ModCount: int
-      ProgressBarState: ProgressBarState 
-      Versions: Version * Version}
+      ProgressBarState: ProgressBarState }
 
 type ModFile =
     { Id: int
@@ -39,7 +37,6 @@ type StateReplyMessage =
 | AddMod of string * int * AsyncReplyChannel<Mod list>
 | UpdateModpackInformation of int * AsyncReplyChannel<int * ProgressBarState>
 | FinishDownload of AsyncReplyChannel<ProgressBarState>
-| SetVersions of Version * Version * AsyncReplyChannel<Version * Version>
 | Restart
 
 type FileReplyMessage =

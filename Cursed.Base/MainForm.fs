@@ -14,35 +14,6 @@ type MainForm(app: Application) =
     inherit Form()
     let modpack = new Modpack(app)
 
-    let updateNotificationRow =
-        let updateCellLayout =
-            let updateAvailableLabel = 
-                let label = new Label(Text="Update available")
-                label.Font <- new Font("Seguo UI", 12.0f, FontStyle.Bold)
-                label
-
-            let versionsLabel = 
-                let label = new Label()
-                label.Text <- sprintf "Current: %A Latest: %A" "" ""
-                label.TextAlignment <- TextAlignment.Center
-                label
-
-            let downloadButton = new Button(Text="Get")
-            let row = new TableRow([new TableCell(updateAvailableLabel); new TableCell(versionsLabel, true); new TableCell(downloadButton)])
-            
-            let tableLayout =
-                let layout = new TableLayout(row)
-                let visibleBinding = Binding.Property(fun (l: TableLayout) -> l.Visible)
-                let updateNotificationLayoutVisibleBinding = Binding.Property(fun (m: Modpack) -> m.Versions).Convert(fun (current, latest) -> 
-                    latest.CompareTo(current) <= 0
-                )
-                layout.BindDataContext(visibleBinding, updateNotificationLayoutVisibleBinding) |> ignore
-                layout
-            tableLayout
-
-        let updateCell = new TableCell(updateCellLayout)
-        new TableRow([new TableCell(); updateCell; new TableCell()])
-
     let extractLocationRow =
         let extractLocationHelpText = new Label(Text="Choose extract location")
         let extractLocationLabel = 
@@ -174,7 +145,6 @@ type MainForm(app: Application) =
         
             layout.Padding <- new Padding(10)
             layout.Spacing <- new Size(5, 5)
-            layout.Rows.Add(updateNotificationRow)
             layout.Rows.Add(extractLocationRow)
             layout.Rows.Add(urlInputRow)
             layout
@@ -189,10 +159,11 @@ type MainForm(app: Application) =
         base.DataContext <- modpack
 
         async {
-            let! current, latest = Startup.GetVersions
-            let isLatest = latest.CompareTo(current) <= 0
+            let! isLatest = Startup.IsLatest
 
             if not isLatest then
-                modpack.SetUpdateAvailable (current, latest)
+                app.Invoke (fun () ->
+                    app.MainForm.Title <- sprintf "Cursed - Update Available"
+                )
         }
         |> Async.Start

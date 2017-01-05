@@ -43,7 +43,6 @@ type Modpack(app: Application) as this =
     let mutable mods = [{ Link = String.Empty; Name = String.Empty; Completed = false; ProjectId = 0 }]
     let mutable modCount = 0
     let mutable progressBarState = Disabled
-    let mutable versions = new Version("1.0.0"), new Version("1.0.0")
 
     member this.UpdateModpackLink link =
         this.ModpackLink <- ViewActor.UpdateLoop.PostAndReply (fun reply -> UpdateModpackLink (link, reply))
@@ -61,9 +60,6 @@ type Modpack(app: Application) as this =
 
     member this.FinishDownload =
         this.ProgressBarState <- ViewActor.UpdateLoop.PostAndReply FinishDownload
-
-    member this.SetUpdateAvailable (current, latest) =
-        this.Versions <- ViewActor.UpdateLoop.PostAndReply (fun reply -> SetVersions (current, latest, reply))
 
     member this.ModpackLink
         with get() = modpackLink
@@ -93,12 +89,6 @@ type Modpack(app: Application) as this =
         and private set(value) =
             progressBarState <- value
             app.Invoke (fun () -> this.OnPropertyChanged <@ this.ProgressBarState @>)
-
-    member this.Versions
-        with get() = versions
-        and private set(value) =
-            versions <- value
-            app.Invoke (fun () -> this.OnPropertyChanged <@ this.Versions @>)
 
     member this.DownloadMod location (file: ModpackManifest.File) =
         let saveToCache projectId modName fileId fileName =
