@@ -17,8 +17,7 @@ module Startup =
         }
     
     let private currentVersion =
-        let version = Assembly.GetExecutingAssembly().GetName().Version
-        new Version(version.Major, version.Minor, version.Build)
+        Assembly.GetExecutingAssembly().GetName().Version
 
     let GetVersions =
         async {

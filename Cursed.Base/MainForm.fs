@@ -2,7 +2,6 @@
 
 open System
 open System.IO
-open System.Diagnostics
 open Eto.Forms
 open Eto.Drawing
 open Common
@@ -18,36 +17,24 @@ type MainForm(app: Application) =
     let updateNotificationRow =
         let updateCellLayout =
             let updateAvailableLabel = 
-                let label = new Label(Text = "Update available")
-                label.Font <- new Font("Seguo UI", 10.0f)
+                let label = new Label(Text="Update available")
+                label.Font <- new Font("Seguo UI", 12.0f, FontStyle.Bold)
                 label
 
             let versionsLabel = 
                 let label = new Label()
                 label.Text <- sprintf "Current: %A Latest: %A" "" ""
                 label.TextAlignment <- TextAlignment.Center
-                let textBinding = Binding.Property(fun (l: Label) -> l.Text)
-                let versionsLabelTextBinding = Binding.Property(fun (m: Modpack) -> m.Versions).Convert(fun (current, latest) ->
-                    sprintf "Current: %A\t\tLatest: %A" current latest
-                )
-                label.BindDataContext<string>(textBinding, versionsLabelTextBinding) |> ignore
                 label
 
-            let downloadButton = 
-                let button = new Button(Text = "Get")
-                let goToDownloads _ =
-                    Process.Start(@"https://github.com/kaeedo/Cursed/releases/latest") |> ignore
-            
-                Observable.subscribe goToDownloads button.MouseDown |> ignore
-                button
-                    
+            let downloadButton = new Button(Text="Get")
             let row = new TableRow([new TableCell(updateAvailableLabel); new TableCell(versionsLabel, true); new TableCell(downloadButton)])
             
             let tableLayout =
                 let layout = new TableLayout(row)
-                let visibleBinding = Binding.Property(fun (tl: TableLayout) -> tl.Visible)
+                let visibleBinding = Binding.Property(fun (l: TableLayout) -> l.Visible)
                 let updateNotificationLayoutVisibleBinding = Binding.Property(fun (m: Modpack) -> m.Versions).Convert(fun (current, latest) -> 
-                    not (latest.CompareTo(current) <= 0)
+                    latest.CompareTo(current) <= 0
                 )
                 layout.BindDataContext(visibleBinding, updateNotificationLayoutVisibleBinding) |> ignore
                 layout
