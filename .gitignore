@@ -20,3 +20,5 @@ Cursed.userprefs
 /Cursed.Base.Tests/obj/Release
 /TestResult.xml
 Cursed*.zip
+/Unzip/bin/Debug
+/Unzip/obj
