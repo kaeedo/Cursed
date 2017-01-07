@@ -12,6 +12,7 @@ nuget FSharp.Data
 nuget FSharp.Core redirects: force 
 nuget Http.fs
 nuget Newtonsoft.Json
+nuget SharpZipLib
 
 nuget NUnit
 nuget Unquote
