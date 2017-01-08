@@ -6,7 +6,7 @@ open Common
 open Hopac
 open HttpFs.Client
 
-open Unzip
+open ICSharpCode.SharpZipLib.Zip
 
 module ModpackController =
     let CreateMultiMcInstance version name author forge = 
@@ -37,7 +37,8 @@ module ModpackController =
         let modpackSubdirectory = zipName.Substring(0, zipName.LastIndexOf('.'))
         let extractLocation = location @@ modpackSubdirectory @@ "minecraft"
         
-        Zip.ExtractZipFile(zipLocation @@ zipName, extractLocation)
+        let fastZip = new FastZip();
+        fastZip.ExtractZip(zipLocation @@ zipName, extractLocation, null)
 
         let fileInfo = new FileInfo(zipLocation @@ zipName)
         fileInfo.Delete()

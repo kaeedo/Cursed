@@ -3,3 +3,4 @@ FSharp.Data
 FSharp.Core
 Http.fs
 Newtonsoft.Json
+SharpZipLib

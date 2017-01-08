@@ -24,8 +24,6 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Cursed.Base", "Cursed.Base\
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Cursed.Base.Tests", "Cursed.Base.Tests\Cursed.Base.Tests.fsproj", "{3431D878-1CA7-4C9F-8FFC-552F4CDD1075}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Unzip", "Unzip\Unzip.csproj", "{086E3B87-5BD8-4E62-A640-723CE384DC3C}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -44,10 +42,6 @@ Global
 		{3431D878-1CA7-4C9F-8FFC-552F4CDD1075}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3431D878-1CA7-4C9F-8FFC-552F4CDD1075}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3431D878-1CA7-4C9F-8FFC-552F4CDD1075}.Release|Any CPU.Build.0 = Release|Any CPU
-		{086E3B87-5BD8-4E62-A640-723CE384DC3C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{086E3B87-5BD8-4E62-A640-723CE384DC3C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{086E3B87-5BD8-4E62-A640-723CE384DC3C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{086E3B87-5BD8-4E62-A640-723CE384DC3C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
