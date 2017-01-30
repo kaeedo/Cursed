@@ -1,7 +1,27 @@
 ﻿namespace Cursed.Base
 
 module CacheActor =
-    open System
+    open Common
+    open System.IO
+    open System.Text
+    open System.Collections.Generic
+    open Newtonsoft.Json
+
+    let private cacheFileLocation = HomePath @@ "cache.txt"
+
+    let private ensureDirectory directoryPath =
+        let directory = new DirectoryInfo(directoryPath)
+        if not directory.Exists then
+            directory.Create()
+
+    let private ensureFile fileName =
+        let file = new FileInfo(fileName)
+
+        ensureDirectory <| file.DirectoryName
+
+        if not file.Exists then
+            let newFile = file.Create()
+            newFile.Close()
 
     let FileLoop =
         let inboxHandler (inbox: MailboxProcessor<FileReplyMessage>) =
@@ -46,12 +66,20 @@ module CacheActor =
                                     p
                             )
 
+                        File.WriteAllText(cacheFileLocation, JsonConvert.SerializeObject(newState), Encoding.UTF8) 
                         return! messageLoop newState
                     | GetCache reply ->
                         reply.Reply oldState
                         return! messageLoop oldState
-                    | Load projects ->
-                        return! messageLoop projects
+                    | Load ->
+                        ensureFile cacheFileLocation
+                        let cache = File.ReadAllText(cacheFileLocation, Encoding.UTF8)
+                        let projects = JsonConvert.DeserializeObject<IList<Project>>(cache)
+        
+                        if isNull projects then
+                            return! messageLoop []
+                        else
+                            return! messageLoop (projects |> List.ofSeq)
                     | FileReplyMessage.Restart ->
                         return! messageLoop []
 
