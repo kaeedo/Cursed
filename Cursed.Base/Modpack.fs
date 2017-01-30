@@ -13,7 +13,6 @@ open HttpFs.Client
 open Eto.Forms
 open Common
 open ModpackController
-open DataAccess
 
 type ModpackBase() =
     let propertyChanged = new Event<_, _>()
@@ -94,8 +93,6 @@ type Modpack(app: Application) as this =
         let saveToCache projectId modName fileId fileName =
             CacheActor.FileLoop.Post <| SaveProject { Id = projectId; Name = modName; Files = [] }
             CacheActor.FileLoop.Post <| SaveMod (projectId, { Id = fileId; FileName = fileName })
-            let cache = CacheActor.FileLoop.PostAndReply GetCache
-            Save cache
 
         let cachedModName =
             let cache = CacheActor.FileLoop.PostAndReply GetCache

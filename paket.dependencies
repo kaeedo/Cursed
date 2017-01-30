@@ -9,7 +9,7 @@ nuget Eto.Platform.Gtk3
 #nuget Eto.Platform.Mac.Template
 nuget Eto.Platform.Wpf
 nuget FSharp.Data
-nuget FSharp.Core redirects: force 
+nuget FSharp.Core redirects: force
 nuget Http.fs
 nuget Newtonsoft.Json
 nuget SharpZipLib

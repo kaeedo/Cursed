@@ -43,5 +43,5 @@ type FileReplyMessage =
 | SaveProject of Project
 | SaveMod of projectId: int * ModFile
 | GetCache of AsyncReplyChannel<Project list>
-| Load of Project list
+| Load
 | Restart
