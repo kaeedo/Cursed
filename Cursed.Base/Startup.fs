@@ -16,15 +16,14 @@ module Startup =
             return version
         }
     
-    let private currentVersion =
-        let version = Assembly.GetExecutingAssembly().GetName().Version
-        new Version(version.Major, version.Minor, version.Build)
+    let private getCurrentVersion =
+        Assembly.GetExecutingAssembly().GetName().Version
 
-    let GetVersions =
+    let IsLatest =
         async {
             let! latest = getLatestVersion
             let latestVersion = new Version(latest)
 
-            return currentVersion, latestVersion
+            return latestVersion.CompareTo(getCurrentVersion) <= 0
         }
     

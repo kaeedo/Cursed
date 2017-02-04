@@ -9,7 +9,7 @@ type MainForm(app: Application) =
     let modpack = new Modpack(app)
 
     do 
-        DataAccess.LoadCache ()
+        CacheActor.FileLoop.Post Load
 
         let dynamicLayout =
             let layout = new DynamicLayout()
@@ -43,10 +43,17 @@ type MainForm(app: Application) =
         base.DataContext <- modpack
 
         async {
-            let! current, latest = Startup.GetVersions
-            let isLatest = latest.CompareTo(current) <= 0
+            try
+                let! isLatest = Startup.IsLatest
 
-            if not isLatest then
-                modpack.SetUpdateAvailable (current, latest)
+                if not isLatest then
+                    app.Invoke (fun () ->
+                        app.MainForm.Title <- sprintf "Cursed - Update Available"
+                    )
+            with
+            | :? Exception ->
+                app.Invoke (fun () ->
+                    app.MainForm.Title <- sprintf "Cursed - Update check failed"
+                )
         }
         |> Async.Start

@@ -1,3 +1,9 @@
+## New in 1.2.3 (Release 2017/01/30)
+* Fix concurrency issues with cache saving
+
+## New in 1.2.2 (Release 2017/01/07)
+* Fix handling of Zip files in Linux systems
+
 ## New in 1.2.1 (Release 2016/12/26)
 * Fix latest version check
 
@@ -11,19 +17,19 @@
 ## New in 1.0.1 (Release 2016/10/11)
 * Hotfix for modpacks that don't have modlist.html
 
-## New in 1.0.0 (Release 2016/10/9)
+## New in 1.0.0 (Release 2016/10/09)
 * First public release
 
-## New in 0.0.4 (Release 2016/10/9)
+## New in 0.0.4 (Release 2016/10/09)
 * Automatic update check
 
-## New in 0.0.3 (Release 2016/10/8)
+## New in 0.0.3 (Release 2016/10/08)
 * Create multiMC instance.cfg
 * Dispaly required Forge version after download
 
-## New in 0.0.2 (Release 2016/10/8)
+## New in 0.0.2 (Release 2016/10/08)
 * Updated readme
 * Removed file number restriction
 
-## New in 0.0.1 (Release 2016/10/8)
+## New in 0.0.1 (Release 2016/10/08)
 * Beta release
