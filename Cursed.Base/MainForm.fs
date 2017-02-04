@@ -28,7 +28,6 @@ type MainForm(app: Application) =
         
             layout.Padding <- new Padding(10)
             layout.Spacing <- new Size(5, 5)
-            //layout.Rows.Add(MainView.UpdateNotificationRow)
             layout.Rows.Add(MainView.ExtractLocationRow modpack app)
             layout.Rows.Add(MainView.UrlInputRow modpack app)
             layout
@@ -49,9 +48,12 @@ type MainForm(app: Application) =
                 if not isLatest then
                     app.Invoke (fun () ->
                         app.MainForm.Title <- sprintf "Cursed - Update Available"
+
+                        let update = new UpdateDialog()
+                        update.ShowModal()
                     )
             with
-            | :? Exception ->
+            | _ ->
                 app.Invoke (fun () ->
                     app.MainForm.Title <- sprintf "Cursed - Update check failed"
                 )

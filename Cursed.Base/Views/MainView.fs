@@ -4,45 +4,6 @@ open System
 open Eto.Forms
 
 module MainView = 
-    (*let UpdateNotificationRow =
-        let updateCellLayout =
-            let updateAvailableLabel = 
-                let label = new Label(Text = "Update available")
-                label.Font <- new Font("Seguo UI", 10.0f)
-                label
-
-            let versionsLabel = 
-                let label = new Label()
-                label.Text <- sprintf "Current: %A Latest: %A" "" ""
-                label.TextAlignment <- TextAlignment.Center
-                let textBinding = Binding.Property(fun (l: Label) -> l.Text)
-                let versionsLabelTextBinding = Binding.Property(fun (m: Modpack) -> m.Versions).Convert(fun (current, latest) ->
-                    sprintf "Current: %A\t\tLatest: %A" current latest
-                )
-                label.BindDataContext<string>(textBinding, versionsLabelTextBinding) |> ignore
-                label
-
-            let downloadButton = 
-                let button = new Button(Text = "Get")
-                let goToDownloads _ =
-                    Process.Start(@"https://github.com/kaeedo/Cursed/releases/latest") |> ignore
-            
-                Observable.subscribe goToDownloads button.MouseDown |> ignore
-                button
-                    
-            let row = new TableRow([new TableCell(updateAvailableLabel); new TableCell(versionsLabel, true); new TableCell(downloadButton)])
-            
-            let tableLayout =
-                let layout = new TableLayout(row)
-                let visibleBinding = Binding.Property(fun (tl: TableLayout) -> tl.Visible)
-                let updateNotificationLayoutVisibleBinding = Binding.Property(fun (m: Modpack) -> m.Versions).Convert(fun (current, latest) -> latest.CompareTo(current) > 0)
-                layout.BindDataContext(visibleBinding, updateNotificationLayoutVisibleBinding) |> ignore
-                layout
-            tableLayout
-
-        let updateCell = new TableCell(updateCellLayout)
-        new TableRow([new TableCell(); updateCell; new TableCell()])
-    *)
     let ExtractLocationRow (modpack: Modpack) (app: Application) =
         let extractLocationHelpText = new Label(Text="Choose extract location")
         let extractLocationLabel = 
