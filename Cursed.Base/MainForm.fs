@@ -1,6 +1,7 @@
 ﻿namespace Cursed.Base
 
 open System
+open System.Reflection
 open Eto.Forms
 open Eto.Drawing
 

@@ -1,7 +1,6 @@
 ﻿namespace Cursed.Base
 
 open FSharp.Data
-open Hopac
 open System
 open System.Reflection
 
