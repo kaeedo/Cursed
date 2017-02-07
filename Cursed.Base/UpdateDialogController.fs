@@ -25,7 +25,7 @@ module UpdateDialogController =
 
             let latestVersion =
                 match latest with
-                | None -> new Version("0.0.0")
+                | None -> new Version("999.999.999")
                 | Some matches ->
                     matches
                     |> Seq.cast<Group>
