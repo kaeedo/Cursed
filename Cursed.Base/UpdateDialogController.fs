@@ -9,8 +9,7 @@ open HttpFs.Client
 module UpdateDialogController =
     let private semverRegex = "(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)(?:-[\da-zA-Z\-]+(?:\.[\da-zA-Z\-]+)*)?(?:\+[\da-zA-Z\-]+(?:\.[\da-zA-Z\-]+)*)?"
     
-    let private getCurrentVersion =
-        Assembly.GetExecutingAssembly().GetName().Version
+    let GetCurrentVersion = Assembly.GetExecutingAssembly().GetName().Version
 
     let GetReleaseNotes = 
         Request.create Get (Uri @"https://raw.githubusercontent.com/kaeedo/Cursed/master/release-notes.md")
@@ -34,6 +33,6 @@ module UpdateDialogController =
                     |> List.head
                     |> fun h -> new Version(h.Value)
 
-            return latestVersion, getCurrentVersion
+            return latestVersion, GetCurrentVersion
         }
     

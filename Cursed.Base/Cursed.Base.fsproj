@@ -59,7 +59,6 @@
     <Compile Include="Actors\CacheActor.fs" />
     <Compile Include="Models\NotifyPropertyChanged.fs" />
     <Compile Include="Models\Modpack.fs" />
-    <Compile Include="Models\ReleaseNotes.fs" />
     <Compile Include="UpdateDialogController.fs" />
     <Compile Include="MainViewController.fs" />
     <Compile Include="Views\MainView.fs" />
