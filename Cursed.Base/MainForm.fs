@@ -1,7 +1,6 @@
 ﻿namespace Cursed.Base
 
 open System
-open System.Reflection
 open Eto.Forms
 open Eto.Drawing
 
@@ -44,7 +43,9 @@ type MainForm(app: Application) =
 
         async {
             try
-                let! isLatest = Startup.IsLatest
+                let latest, current = UpdateDialogController.Versions |> Async.RunSynchronously
+                let isLatest =
+                    latest.CompareTo(current) <= 0
 
                 if not isLatest then
                     app.Invoke (fun () ->

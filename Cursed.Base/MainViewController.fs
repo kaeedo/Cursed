@@ -5,7 +5,7 @@ open Hopac
 open Common
 open ModpackController
 
-module MainFormController =
+module MainViewController =
     let GetProgress state =
         match state with
         | Progress complete -> complete

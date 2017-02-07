@@ -47,7 +47,7 @@ module MainView =
                     MessageBox.Show("Please input the link to the Modpack", MessageBoxType.Warning) |> ignore
                 else
                     async {
-                        let forgeVersion = MainFormController.DownloadModpack modpack
+                        let forgeVersion = MainViewController.DownloadModpack modpack
                         match forgeVersion with
                         | Some forge -> app.Invoke (fun () -> MessageBox.Show(sprintf "To create a MultiMC instance, you must install Forge version: %s" forge, MessageBoxType.Information) |> ignore)
                         | None -> app.Invoke (fun () -> MessageBox.Show("Something went wrong", MessageBoxType.Error) |> ignore)
@@ -79,7 +79,7 @@ module MainView =
         progressBar.BindDataContext<int>(maxValueBinding, progressBarMaxValueBinding) |> ignore
         
         let progressBinding = Binding.Property(fun (pb: ProgressBar) -> pb.Value) 
-        let progressBarProgressBinding = Binding.Property(fun (m: Modpack) -> m.ProgressBarState).Convert(fun progress -> MainFormController.GetProgress progress)
+        let progressBarProgressBinding = Binding.Property(fun (m: Modpack) -> m.ProgressBarState).Convert(fun progress -> MainViewController.GetProgress progress)
         progressBar.BindDataContext<int>(progressBinding, progressBarProgressBinding) |> ignore
         
 
@@ -89,7 +89,7 @@ module MainView =
         let listBox = new ListBox()
         
         let dataStoreBinding = Binding.Property(fun (lb: ListBox) -> lb.DataStore) 
-        let modsBinding = Binding.Property(fun (m: Modpack) -> m.Mods).Convert(fun mods -> MainFormController.GetIncompleteMods mods)
+        let modsBinding = Binding.Property(fun (m: Modpack) -> m.Mods).Convert(fun mods -> MainViewController.GetIncompleteMods mods)
         listBox.BindDataContext<seq<obj>>(dataStoreBinding, modsBinding) |> ignore
 
         listBox.Height <- 500
@@ -104,7 +104,7 @@ module MainView =
         let listBox = new ListBox()
         
         let dataStoreBinding = Binding.Property(fun (lb: ListBox) -> lb.DataStore) 
-        let modsBinding = Binding.Property(fun (m: Modpack) -> m.Mods).Convert(fun mods -> MainFormController.GetCompletedMods mods)
+        let modsBinding = Binding.Property(fun (m: Modpack) -> m.Mods).Convert(fun mods -> MainViewController.GetCompletedMods mods)
         listBox.BindDataContext<seq<obj>>(dataStoreBinding, modsBinding) |> ignore
 
         listBox.Height <- 500
