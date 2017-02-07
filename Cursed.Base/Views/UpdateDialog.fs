@@ -40,8 +40,25 @@ type UpdateDialog() as this =
 
                     button
 
-                let skipButton = new Button(Text = "Skip this version")
-                let laterButton = new Button(Text = "Later")
+                let skipButton = 
+                    let button = new Button(Text = "Skip this version")
+
+                    let skipVersionHandler _ =
+                        //post to cache
+                        this.Close() |> ignore
+
+                    Observable.subscribe skipVersionHandler button.MouseUp |> ignore
+
+                    button
+                let laterButton = 
+                    let button = new Button(Text = "Later")
+
+                    let laterHandler _ =
+                        this.Close() |> ignore
+
+                    Observable.subscribe laterHandler button.MouseUp |> ignore
+
+                    button
 
                 let cells = 
                     [ new TableCell(updateButton)

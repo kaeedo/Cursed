@@ -1,12 +1,13 @@
 ﻿namespace Cursed.Base
 
-module CacheActor =
-    open Common
-    open System.IO
-    open System.Text
-    open System.Collections.Generic
-    open Newtonsoft.Json
+open Common
+open System
+open System.IO
+open System.Text
+open System.Collections.Generic
+open Newtonsoft.Json
 
+module CacheActor =
     let private cacheFileLocation = HomePath @@ "cache.txt"
 
     let private ensureDirectory directoryPath =
@@ -25,14 +26,14 @@ module CacheActor =
 
     let FileLoop =
         let inboxHandler (inbox: MailboxProcessor<FileReplyMessage>) =
-            let rec messageLoop oldState =
+            let rec messageLoop (oldState: Cache) =
                 async {
                     let! message = inbox.Receive()
 
                     match message with
                     | SaveProject project ->
                         let cachedProject = 
-                            oldState
+                            oldState.Projects
                             |> List.tryFind (fun p ->
                                 p.Id = project.Id
                             )
@@ -40,12 +41,14 @@ module CacheActor =
                         match cachedProject with
                         | Some _ -> return! messageLoop oldState
                         | None ->
-                            let newState = project :: oldState
+                            let newState =
+                                let projects = project :: oldState.Projects
+                                { oldState with Projects = projects }
                             return! messageLoop newState
 
                     | SaveMod (projectId, modFile) ->
                         let project =
-                            oldState
+                            oldState.Projects
                             |> List.find (fun p ->
                                 p.Id = projectId
                             )
@@ -58,13 +61,15 @@ module CacheActor =
                                 Files = modFile :: project.Files }
 
                         let newState =
-                            oldState
-                            |> List.map (fun p ->
-                                if p = project then
-                                    projectWithAddedMod
-                                else
-                                    p
-                            )
+                            let projects =
+                                oldState.Projects
+                                |> List.map (fun p ->
+                                    if p = project then
+                                        projectWithAddedMod
+                                    else
+                                        p
+                                )
+                            { oldState with Projects = projects }
 
                         File.WriteAllText(cacheFileLocation, JsonConvert.SerializeObject(newState), Encoding.UTF8) 
                         return! messageLoop newState
@@ -73,19 +78,31 @@ module CacheActor =
                         return! messageLoop oldState
                     | Load ->
                         ensureFile cacheFileLocation
-                        let cache = File.ReadAllText(cacheFileLocation, Encoding.UTF8)
-                        let projects = JsonConvert.DeserializeObject<IList<Project>>(cache)
+                        let cacheFile = File.ReadAllText(cacheFileLocation, Encoding.UTF8)
+
+                        let getCache =
+                            try
+                                let cache = JsonConvert.DeserializeObject<Cache>(cacheFile)
+                                cache
+                            with
+                            | _ ->
+                                let projects = JsonConvert.DeserializeObject<List<Project>>(cacheFile)
+                                if isNull projects then
+                                    let migratedCache = { Projects = []; SkipVersion = new Version("0.0.0") }
+                                    File.WriteAllText(cacheFileLocation, JsonConvert.SerializeObject(migratedCache), Encoding.UTF8) 
+                                    migratedCache
+                                else
+                                    let migratedCache = { Projects = projects |> List.ofSeq; SkipVersion = new Version("0.0.0") }
+                                    File.WriteAllText(cacheFileLocation, JsonConvert.SerializeObject(migratedCache), Encoding.UTF8) 
+                                    migratedCache
         
-                        if isNull projects then
-                            return! messageLoop []
-                        else
-                            return! messageLoop (projects |> List.ofSeq)
+                        return! messageLoop getCache
                     | FileReplyMessage.Restart ->
-                        return! messageLoop []
+                        return! messageLoop { Projects = []; SkipVersion = new Version("0.0.0") }
 
                     return! messageLoop oldState
                 }
 
-            messageLoop []
+            messageLoop { Projects = []; SkipVersion = new Version("0.0.0") }
 
         MailboxProcessor.Start(inboxHandler)

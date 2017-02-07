@@ -74,7 +74,7 @@ type Modpack(app: Application) as this =
 
         let cachedModName =
             let cache = CacheActor.FileLoop.PostAndReply GetCache
-            cache
+            cache.Projects
             |> List.tryFind (fun p ->
                 p.Id = file.ProjectId
             )

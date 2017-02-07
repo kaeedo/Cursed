@@ -44,14 +44,13 @@ type MainForm(app: Application) =
         async {
             try
                 let latest, current = UpdateDialogController.Versions |> Async.RunSynchronously
-                let isLatest =
-                    latest.CompareTo(current) <= 0
+                let isLatest = latest.CompareTo(current) <= 0
 
                 if not isLatest then
+                    let update = new UpdateDialog()
                     app.Invoke (fun () ->
                         app.MainForm.Title <- sprintf "Cursed - Update Available"
 
-                        let update = new UpdateDialog()
                         update.ShowModal()
                     )
             with
