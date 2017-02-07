@@ -73,6 +73,10 @@ module CacheActor =
 
                         File.WriteAllText(cacheFileLocation, JsonConvert.SerializeObject(newState), Encoding.UTF8) 
                         return! messageLoop newState
+                    | SaveVersionSkip version ->
+                        let newState = { oldState with SkipVersion = version }
+                        File.WriteAllText(cacheFileLocation, JsonConvert.SerializeObject(newState), Encoding.UTF8) 
+                        return! messageLoop newState
                     | GetCache reply ->
                         reply.Reply oldState
                         return! messageLoop oldState

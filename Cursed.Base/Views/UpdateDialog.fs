@@ -51,7 +51,7 @@ type UpdateDialog() as this =
                     let button = new Button(Text = sprintf "Skip version %s" latestVersion)
 
                     let skipVersionHandler _ =
-                        //post to cache
+                        CacheActor.FileLoop.Post <| SaveVersionSkip latestVersion
                         this.Close() |> ignore
 
                     Observable.subscribe skipVersionHandler button.MouseUp |> ignore

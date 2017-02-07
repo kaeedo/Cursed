@@ -47,6 +47,7 @@ type StateReplyMessage =
 type FileReplyMessage =
 | SaveProject of Project
 | SaveMod of projectId: int * ModFile
+| SaveVersionSkip of string
 | GetCache of AsyncReplyChannel<Cache>
 | Load
 | Restart
