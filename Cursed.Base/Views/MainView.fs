@@ -21,7 +21,7 @@ module MainView =
                 folderDialog.ShowDialog(app.Windows |> Seq.head) |> ignore
                 modpack.SetExtractLocation folderDialog.Directory
             
-            Observable.subscribe openSelectFolderHandler button.MouseDown |> ignore
+            Observable.subscribe openSelectFolderHandler button.MouseUp |> ignore
 
             button
         new TableRow([new TableCell(extractLocationHelpText); new TableCell(extractLocationLabel); new TableCell(openSelectFolderButton)])
@@ -54,7 +54,7 @@ module MainView =
                     }
                     |> Async.Start
 
-            Observable.subscribe addModpackLinkHandler button.MouseDown |> ignore
+            Observable.subscribe addModpackLinkHandler button.MouseUp |> ignore
             button
 
         new TableRow([new TableCell(urlInputLabel); new TableCell(urlInputTextBox, true); new TableCell(downloadButton)])

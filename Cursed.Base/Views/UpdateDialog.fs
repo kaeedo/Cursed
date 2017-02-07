@@ -1,10 +1,11 @@
 ﻿namespace Cursed.Base
 
 open System
+open System.Diagnostics
 open Eto.Forms
 open Eto.Drawing
 
-type UpdateDialog() =
+type UpdateDialog() as this =
     inherit Dialog()
     
     do
@@ -29,21 +30,29 @@ type UpdateDialog() =
                 textArea
 
             let actionButtonsRow =
-                let updateButton = new Button(Text = "Download")
+                let updateButton = 
+                    let button = new Button(Text = "Download")
+                    let downloadHandler _ =
+                        Process.Start("https://github.com/kaeedo/Cursed/releases/latest") |> ignore
+                        this.Close() |> ignore
+
+                    Observable.subscribe downloadHandler button.MouseUp |> ignore
+
+                    button
+
                 let skipButton = new Button(Text = "Skip this version")
                 let laterButton = new Button(Text = "Later")
 
-                let tableRow = 
-                    let row = new TableRow()
-                    row.Cells.Add(new TableCell(updateButton))
-                    row.Cells.Add(new TableCell(null, true))
-                    row.Cells.Add(new TableCell(skipButton))
-                    row.Cells.Add(new TableCell(laterButton))
-                    row
+                let cells = 
+                    [ new TableCell(updateButton)
+                      new TableCell(null, true)
+                      new TableCell(skipButton)
+                      new TableCell(laterButton) ]
+
                 let tableLayout = new TableLayout()
                 tableLayout.Spacing <- new Size(5, 0)
                 tableLayout.Padding <- new Padding(0, 10, 0, 0)
-                tableLayout.Rows.Add(tableRow)
+                tableLayout.Rows.Add(new TableRow(cells))
                 tableLayout
 
             layout.Padding <- Nullable <| new Padding(10)
