@@ -88,21 +88,21 @@ module CacheActor =
                             | _ ->
                                 let projects = JsonConvert.DeserializeObject<List<Project>>(cacheFile)
                                 if isNull projects then
-                                    let migratedCache = { Projects = []; SkipVersion = new Version("0.0.0") }
+                                    let migratedCache = { Projects = []; SkipVersion = "0.0.0" }
                                     File.WriteAllText(cacheFileLocation, JsonConvert.SerializeObject(migratedCache), Encoding.UTF8) 
                                     migratedCache
                                 else
-                                    let migratedCache = { Projects = projects |> List.ofSeq; SkipVersion = new Version("0.0.0") }
+                                    let migratedCache = { Projects = projects |> List.ofSeq; SkipVersion = "0.0.0" }
                                     File.WriteAllText(cacheFileLocation, JsonConvert.SerializeObject(migratedCache), Encoding.UTF8) 
                                     migratedCache
         
                         return! messageLoop getCache
                     | FileReplyMessage.Restart ->
-                        return! messageLoop { Projects = []; SkipVersion = new Version("0.0.0") }
+                        return! messageLoop { Projects = []; SkipVersion = "0.0.0" }
 
                     return! messageLoop oldState
                 }
 
-            messageLoop { Projects = []; SkipVersion = new Version("0.0.0") }
+            messageLoop { Projects = []; SkipVersion = "0.0.0" }
 
         MailboxProcessor.Start(inboxHandler)

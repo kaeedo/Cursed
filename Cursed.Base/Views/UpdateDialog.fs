@@ -8,11 +8,18 @@ open Eto.Drawing
 type UpdateDialog() as this =
     inherit Dialog()
     
+
     do
+        let latestVersion, currentVersion =
+            let versions =
+                UpdateDialogController.Versions
+                |> Async.RunSynchronously
+            (fst versions).ToString(3), (snd versions).ToString(3)
+
         let layout = 
             let layout = new DynamicLayout()
             let updateTitle =
-                let title = new Label(Text = (sprintf "Update Available - Changes since %s" <| UpdateDialogController.GetCurrentVersion.ToString(3)))
+                let title = new Label(Text = (sprintf "Update Available - Changes since %s" currentVersion))
                 title.TextAlignment <- TextAlignment.Center
                 title.Font <- new Font("Segoe UI", 14.0f)
                 title
@@ -22,7 +29,7 @@ type UpdateDialog() as this =
                     UpdateDialogController.GetReleaseNotes.Split [|'\n'|]
                     |> List.ofArray
                     |> List.takeWhile (fun line ->
-                        not <| line.Contains(UpdateDialogController.GetCurrentVersion.ToString(3))
+                        not <| line.Contains(currentVersion)
                     )
                     |> String.concat Environment.NewLine
 
@@ -41,7 +48,7 @@ type UpdateDialog() as this =
                     button
 
                 let skipButton = 
-                    let button = new Button(Text = "Skip this version")
+                    let button = new Button(Text = sprintf "Skip version %s" latestVersion)
 
                     let skipVersionHandler _ =
                         //post to cache

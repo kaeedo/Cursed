@@ -44,11 +44,17 @@ type MainForm(app: Application) =
         async {
             try
                 let latest, current = UpdateDialogController.Versions |> Async.RunSynchronously
+
+                let cache = CacheActor.FileLoop.PostAndReply GetCache
+                let skipUpdateCheck = 
+                    let skipVersion = new Version(cache.SkipVersion)
+                    skipVersion.CompareTo(latest) = 0
+
                 let isLatest = latest.CompareTo(current) <= 0
 
-                if not isLatest then
-                    let update = new UpdateDialog()
+                if (not isLatest) && (not skipUpdateCheck) then
                     app.Invoke (fun () ->
+                        let update = new UpdateDialog()
                         app.MainForm.Title <- sprintf "Cursed - Update Available"
 
                         update.ShowModal()
