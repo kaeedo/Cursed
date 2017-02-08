@@ -1,3 +1,6 @@
+## new 1.3.1
+ergerg
+
 ## New in 1.2.3 (Release 2017/01/30)
 * Fix concurrency issues with cache saving
 
