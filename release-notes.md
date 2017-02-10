@@ -1,3 +1,6 @@
+## New in 1.3.0 (Releas 2017/02/10)
+* Add a new Update Dialog showing list of changes
+
 ## New in 1.2.3 (Release 2017/01/30)
 * Fix concurrency issues with cache saving
 

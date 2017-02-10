@@ -1,6 +1,6 @@
 ﻿namespace Cursed
-module Program =
 
+module Program =
     open System
     open System.Threading
     open Cursed.Base
@@ -9,6 +9,5 @@ module Program =
     [<STAThread>]
     let Main(args) = 
         let app = new Eto.Forms.Application(Eto.Platform.Detect)
-
         app.Run(new MainForm(app))
         0

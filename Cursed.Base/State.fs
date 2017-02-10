@@ -1,4 +1,5 @@
 ﻿namespace Cursed.Base
+
 open FSharp.Data
 
 type ModpackManifest = JsonProvider<"./SampleManifest.json">
@@ -30,6 +31,10 @@ type Project =
       Name: string
       Files: ModFile list }
 
+type Cache = 
+    { Projects: Project list
+      SkipVersion: string }
+
 type StateReplyMessage =
 | UpdateModpackLink of string * AsyncReplyChannel<string>
 | SetExtractLocation of string * AsyncReplyChannel<string>
@@ -42,6 +47,7 @@ type StateReplyMessage =
 type FileReplyMessage =
 | SaveProject of Project
 | SaveMod of projectId: int * ModFile
-| GetCache of AsyncReplyChannel<Project list>
+| SaveVersionSkip of string
+| GetCache of AsyncReplyChannel<Cache>
 | Load
 | Restart

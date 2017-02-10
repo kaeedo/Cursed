@@ -11,6 +11,7 @@ let testDir = buildDir @@ "test"
 let releaseNotes = ReadFile "release-notes.md" |> ReleaseNotesHelper.parseReleaseNotes
 
 Target "SetVersion" (fun _ ->
+    trace <| sprintf "Setting version %s" releaseNotes.AssemblyVersion
     CreateFSharpAssemblyInfo ("." @@ "Cursed.Base" @@ "AssemblyInfo.fs") [Attribute.Version releaseNotes.AssemblyVersion]
     CreateFSharpAssemblyInfo ("." @@ "Cursed" @@ "AssemblyInfo.fs") [Attribute.Version releaseNotes.AssemblyVersion]
 )

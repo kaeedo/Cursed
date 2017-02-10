@@ -57,9 +57,12 @@
     <Compile Include="ModpackController.fs" />
     <Compile Include="Actors\ViewActor.fs" />
     <Compile Include="Actors\CacheActor.fs" />
-    <Compile Include="Modpack.fs" />
-    <Compile Include="Startup.fs" />
-    <Compile Include="MainFormController.fs" />
+    <Compile Include="Models\NotifyPropertyChanged.fs" />
+    <Compile Include="Models\Modpack.fs" />
+    <Compile Include="UpdateDialogController.fs" />
+    <Compile Include="MainViewController.fs" />
+    <Compile Include="Views\MainView.fs" />
+    <Compile Include="Views\UpdateDialog.fs" />
     <Compile Include="MainForm.fs" />
     <None Include="SampleCache.json" />
     <None Include="paket.references" />

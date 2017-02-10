@@ -1,11 +1,8 @@
 ﻿namespace Cursed.Base
 
 open System
-open System.ComponentModel
 open System.IO
 open System.Net
-open Microsoft.FSharp.Quotations
-open Microsoft.FSharp.Quotations.Patterns
 
 open FSharp.Data
 open Hopac
@@ -14,27 +11,8 @@ open Eto.Forms
 open Common
 open ModpackController
 
-type ModpackBase() =
-    let propertyChanged = new Event<_, _>()
-    let toPropName (query: Expr) =
-        match query with
-        | PropertyGet(a, b, list) -> b.Name
-        | _ -> String.Empty
-
-    interface INotifyPropertyChanged with
-        [<CLIEvent>]
-        member x.PropertyChanged = propertyChanged.Publish
-
-    abstract member OnPropertyChanged: string -> unit
-    default this.OnPropertyChanged (propertyName: string) =
-        propertyChanged.Trigger(this, new PropertyChangedEventArgs(propertyName))
-
-    member this.OnPropertyChanged (expr: Expr) =
-        let propName = toPropName(expr)
-        this.OnPropertyChanged(propName)
-
 type Modpack(app: Application) as this =
-    inherit ModpackBase()
+    inherit NotifyPropertyChanged()
     do ServicePointManager.DefaultConnectionLimit <- 1000
 
     let mutable modpackLink = String.Empty
@@ -96,7 +74,7 @@ type Modpack(app: Application) as this =
 
         let cachedModName =
             let cache = CacheActor.FileLoop.PostAndReply GetCache
-            cache
+            cache.Projects
             |> List.tryFind (fun p ->
                 p.Id = file.ProjectId
             )
