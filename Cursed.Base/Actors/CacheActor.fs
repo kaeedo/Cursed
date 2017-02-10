@@ -87,7 +87,13 @@ module CacheActor =
                         let getCache =
                             try
                                 let cache = JsonConvert.DeserializeObject<Cache>(cacheFile)
-                                cache
+                                match box cache with
+                                | null ->
+                                    let newCache = { Projects = []; SkipVersion = "0.0.0" }
+                                    File.WriteAllText(cacheFileLocation, JsonConvert.SerializeObject(newCache), Encoding.UTF8) 
+                                    newCache
+                                | _ ->
+                                    cache
                             with
                             | _ ->
                                 let projects = JsonConvert.DeserializeObject<List<Project>>(cacheFile)
