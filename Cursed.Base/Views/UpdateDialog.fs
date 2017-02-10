@@ -21,7 +21,8 @@ type UpdateDialog() as this =
             let updateTitle =
                 let title = new Label(Text = (sprintf "Update Available - Changes since %s" currentVersion))
                 title.TextAlignment <- TextAlignment.Center
-                title.Font <- new Font("Segoe UI", 14.0f)
+                let fontFamily = title.Font.Family
+                title.Font <- new Font(fontFamily, 14.0f)
                 title
 
             let releaseNotes =
