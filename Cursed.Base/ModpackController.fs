@@ -9,9 +9,9 @@ open HttpFs.Client
 open ICSharpCode.SharpZipLib.Zip
 
 module ModpackController =
-    let CreateMultiMcInstance version name author forge = 
+    let CreateMultiMcInstance minecraftVersion version name author forge = 
         [ "InstanceType", "OneSix"
-          "IntendedVersion", version
+          "IntendedVersion", minecraftVersion
           "LogPrePostOutput", "true"
           "OverrideCommands", "false"
           "OverrideConsole", "false"
@@ -86,7 +86,7 @@ module ModpackController =
             let manifest = ModpackManifest.Parse(manifestFile)
             let forge = manifest.Minecraft.ModLoaders.[0].Id
 
-            CreateMultiMcInstance manifest.Version manifest.Name manifest.Author forge
+            CreateMultiMcInstance manifest.Minecraft.Version manifest.Version manifest.Name manifest.Author forge
             |> Seq.iter (fun setting ->
                 outFile.WriteLine(sprintf "%s=%s" setting.Key setting.Value)
             )

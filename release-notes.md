@@ -1,3 +1,6 @@
+﻿## New in 1.3.1 (Release 2017/02/11)
+* Minor bugfix ಠ_ಠ
+
 ## New in 1.3.0 (Releas 2017/02/10)
 * Add a new Update Dialog showing list of changes
 

@@ -8,14 +8,15 @@ open Swensen.Unquote
 type ModpackControllerTests() = 
     [<Test>]
     member this.``When creating multimc instance should create list of strings`` () = 
+        let minecraftVersion = "1.10.1"
         let version = "12.3.1"
         let name = "name"
         let author = "me"
         let forge = "12.4234.525.234"
-        let instance = ModpackController.CreateMultiMcInstance version name author forge
+        let instance = ModpackController.CreateMultiMcInstance minecraftVersion version name author forge
         test <@ instance.Count = 14 @>
         test <@ instance.["InstanceType"] = "OneSix" @>
-        test <@ instance.["IntendedVersion"] = version @>
+        test <@ instance.["IntendedVersion"] = minecraftVersion @>
         test <@ instance.["LogPrePostOutput"] = "true" @>
         test <@ instance.["OverrideCommands"] = "false" @>
         test <@ instance.["OverrideConsole"] = "false" @>
