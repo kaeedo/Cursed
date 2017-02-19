@@ -96,3 +96,8 @@ module ModpackController =
             return forge
         }
         |> run
+
+    let TryFindMod extractLocation fileName = 
+        let foundMod = 
+            Directory.GetFiles(extractLocation, fileName, SearchOption.AllDirectories)
+        foundMod |> Array.tryHead

@@ -76,17 +76,37 @@ type Modpack(app: Application) as this =
         let saveToCache projectId modName fileId fileName =
             CacheActor.FileLoop.Post <| SaveProject { Id = projectId; Name = modName; Files = [] }
             CacheActor.FileLoop.Post <| SaveMod (projectId, { Id = fileId; FileName = fileName })
+        
+        let maybeCopyMod =
+            maybe {
+                let! cachedMod =
+                    let cache = CacheActor.FileLoop.PostAndReply GetCache
+                    cache.Projects
+                    |> List.tryFind (fun p ->
+                        p.Id = file.ProjectId
+                    )
 
-        let cachedModName =
-            let cache = CacheActor.FileLoop.PostAndReply GetCache
-            cache.Projects
-            |> List.tryFind (fun p ->
-                p.Id = file.ProjectId
-            )
+                do this.AddMod (cachedMod.Name, cachedMod.Id)
 
-        match cachedModName with 
-        | Some project -> this.AddMod (project.Name, project.Id)
-        | None -> ()
+                let! file =
+                    cachedMod.Files
+                    |> List.tryFind (fun f ->
+                        f.Id = file.FileId
+                    )
+
+                let! tryFindModLocation = TryFindMod this.ExtractLocation file.FileName
+
+                return tryFindModLocation
+            }
+
+        match maybeCopyMod with
+        | Some copyMod ->
+            //Copy Mod
+            let a = copyMod
+            ()
+        | None ->
+            //DOwnload Mod
+            ()
 
         job {
             let projectResponse =
@@ -98,7 +118,8 @@ type Modpack(app: Application) as this =
             let html = HtmlDocument.Load(link)
 
             let modName = 
-                match cachedModName with
+                //match cachedModName with
+                match None with
                 | Some project -> project.Name
                 | None ->
                     let modNameHtml = (html.CssSelect("h1.project-title > a > span")).[0].InnerText
