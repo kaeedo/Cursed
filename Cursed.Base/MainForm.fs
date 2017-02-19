@@ -10,6 +10,7 @@ type MainForm(app: Application) =
 
     do 
         CacheActor.FileLoop.Post Load
+        modpack.Load
 
         let dynamicLayout =
             let layout = new DynamicLayout()

@@ -33,7 +33,9 @@ type Project =
 
 type Cache = 
     { Projects: Project list
-      SkipVersion: string }
+      SkipVersion: string
+      CurseLink: string
+      ModpackLocation: string }
 
 type StateReplyMessage =
 | UpdateModpackLink of string * AsyncReplyChannel<string>
@@ -48,6 +50,8 @@ type FileReplyMessage =
 | SaveProject of Project
 | SaveMod of projectId: int * ModFile
 | SaveVersionSkip of string
+| SaveModpackLink of string
+| SaveModpackLocation of string
 | GetCache of AsyncReplyChannel<Cache>
 | Load
 | Restart

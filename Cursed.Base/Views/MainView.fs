@@ -20,6 +20,7 @@ module MainView =
                 let folderDialog = new SelectFolderDialog()
                 folderDialog.ShowDialog(app.Windows |> Seq.head) |> ignore
                 modpack.SetExtractLocation folderDialog.Directory
+                CacheActor.FileLoop.Post <| SaveModpackLocation folderDialog.Directory
             
             Observable.subscribe openSelectFolderHandler button.MouseUp |> ignore
 
@@ -33,6 +34,11 @@ module MainView =
             let textBox = new TextBox()
             let onInput _ = 
                 modpack.UpdateModpackLink textBox.Text
+                CacheActor.FileLoop.Post <| SaveModpackLink textBox.Text
+
+            textBox.TextBinding.BindDataContext<Modpack>((fun (m: Modpack) ->
+                m.ModpackLink
+            ), DualBindingMode.OneWay) |> ignore
             
             Observable.subscribe onInput textBox.TextChanged |> ignore
             textBox

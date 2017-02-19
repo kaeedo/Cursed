@@ -38,6 +38,11 @@ type Modpack(app: Application) as this =
     member this.FinishDownload =
         this.ProgressBarState <- ViewActor.UpdateLoop.PostAndReply FinishDownload
 
+    member this.Load =
+        let cache = CacheActor.FileLoop.PostAndReply GetCache
+        this.ModpackLink <- cache.CurseLink
+        this.ExtractLocation <- cache.ModpackLocation
+
     member this.ModpackLink
         with get() = modpackLink
         and private set(value) =
