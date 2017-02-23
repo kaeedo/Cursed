@@ -86,7 +86,7 @@ type Modpack(app: Application) as this =
                         p.Id = file.ProjectId
                     )
 
-                do this.AddMod (cachedMod.Name, cachedMod.Id)
+                do! Some (this.AddMod (cachedMod.Name, cachedMod.Id))
 
                 let! file =
                     cachedMod.Files
