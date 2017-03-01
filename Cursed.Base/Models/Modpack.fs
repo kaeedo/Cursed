@@ -106,53 +106,44 @@ type Modpack(app: Application) as this =
         match maybeCopyMod with
         | Some copyModLocation ->
             job {
-                try
-                    File.Copy(copyModLocation, modsDirectory @@ cachedMod.Value.Name, true)
-                with
-                | :? Exception as exn ->
-                    let a = exn
-                    ()
+                 File.Copy(copyModLocation, modsDirectory @@ Path.GetFileName(copyModLocation), true)
+                 this.UpdateProgress file.ProjectId
             }
         | None ->
             job {
-                try
-                    let projectResponse =
-                        Request.create Get (Uri <| sprintf "http://minecraft.curseforge.com/projects/%i" file.ProjectId)
-                        |> getResponse
-                        |> run
+                let projectResponse =
+                    Request.create Get (Uri <| sprintf "http://minecraft.curseforge.com/projects/%i" file.ProjectId)
+                    |> getResponse
+                    |> run
 
-                    let link = projectResponse.responseUri.ToString()
-                    let html = HtmlDocument.Load(link)
+                let link = projectResponse.responseUri.ToString()
+                let html = HtmlDocument.Load(link)
 
-                    let modName = 
-                        match cachedMod with
-                        | Some project -> project.Name
-                        | None ->
-                            let modNameHtml = (html.CssSelect("h1.project-title > a > span")).[0].InnerText
-                            let name = modNameHtml()
-                            this.AddMod (name, file.ProjectId)
-                            name
+                let modName = 
+                    match cachedMod with
+                    | Some project -> project.Name
+                    | None ->
+                        let modNameHtml = (html.CssSelect("h1.project-title > a > span")).[0].InnerText
+                        let name = modNameHtml()
+                        this.AddMod (name, file.ProjectId)
+                        name
 
-                    let fileUrl = sprintf "%A/files/%i/download" projectResponse.responseUri file.FileId
+                let fileUrl = sprintf "%A/files/%i/download" projectResponse.responseUri file.FileId
 
-                    using(Request.create Get (Uri fileUrl) |> getResponse |> run) (fun r ->
-                        let fileName = Uri.UnescapeDataString(r.responseUri.Segments |> Array.last)
+                using(Request.create Get (Uri fileUrl) |> getResponse |> run) (fun r ->
+                    let fileName = Uri.UnescapeDataString(r.responseUri.Segments |> Array.last)
                 
-                        saveToCache file.ProjectId modName file.FileId fileName
+                    saveToCache file.ProjectId modName file.FileId fileName
 
-                        Directory.CreateDirectory(modsDirectory) |> ignore
+                    Directory.CreateDirectory(modsDirectory) |> ignore
 
-                        using(new FileStream(modsDirectory @@ fileName, FileMode.Create)) (fun s -> 
-                            r.body.CopyTo(s)
-                            s.Close()
-                        )
+                    using(new FileStream(modsDirectory @@ fileName, FileMode.Create)) (fun s -> 
+                        r.body.CopyTo(s)
+                        s.Close()
                     )
+                )
 
-                    this.UpdateProgress file.ProjectId
-                with
-                | :? Exception as exn ->
-                    let a = exn
-                    ()
+                this.UpdateProgress file.ProjectId
             }
 
     member this.DownloadZip =
