@@ -77,14 +77,18 @@ type Modpack(app: Application) as this =
             CacheActor.FileLoop.Post <| SaveProject { Id = projectId; Name = modName; Files = [] }
             CacheActor.FileLoop.Post <| SaveMod (projectId, { Id = fileId; FileName = fileName })
         
+        let cache = CacheActor.FileLoop.PostAndReply GetCache
+        let cachedMod = 
+            cache.Projects
+                |> List.tryFind (fun p ->
+                    p.Id = file.ProjectId
+                )
+            
+        let modsDirectory = location @@ "mods"
+
         let maybeCopyMod =
             maybe {
-                let! cachedMod =
-                    let cache = CacheActor.FileLoop.PostAndReply GetCache
-                    cache.Projects
-                    |> List.tryFind (fun p ->
-                        p.Id = file.ProjectId
-                    )
+                let! cachedMod = cachedMod
 
                 do! Some (this.AddMod (cachedMod.Name, cachedMod.Id))
 
@@ -100,51 +104,56 @@ type Modpack(app: Application) as this =
             }
 
         match maybeCopyMod with
-        | Some copyMod ->
-            //Copy Mod
-            let a = copyMod
-            ()
+        | Some copyModLocation ->
+            job {
+                try
+                    File.Copy(copyModLocation, modsDirectory @@ cachedMod.Value.Name, true)
+                with
+                | :? Exception as exn ->
+                    let a = exn
+                    ()
+            }
         | None ->
-            //DOwnload Mod
-            ()
+            job {
+                try
+                    let projectResponse =
+                        Request.create Get (Uri <| sprintf "http://minecraft.curseforge.com/projects/%i" file.ProjectId)
+                        |> getResponse
+                        |> run
 
-        job {
-            let projectResponse =
-                Request.create Get (Uri <| sprintf "http://minecraft.curseforge.com/projects/%i" file.ProjectId)
-                |> getResponse
-                |> run
+                    let link = projectResponse.responseUri.ToString()
+                    let html = HtmlDocument.Load(link)
 
-            let link = projectResponse.responseUri.ToString()
-            let html = HtmlDocument.Load(link)
+                    let modName = 
+                        match cachedMod with
+                        | Some project -> project.Name
+                        | None ->
+                            let modNameHtml = (html.CssSelect("h1.project-title > a > span")).[0].InnerText
+                            let name = modNameHtml()
+                            this.AddMod (name, file.ProjectId)
+                            name
 
-            let modName = 
-                //match cachedModName with
-                match None with
-                | Some project -> project.Name
-                | None ->
-                    let modNameHtml = (html.CssSelect("h1.project-title > a > span")).[0].InnerText
-                    let name = modNameHtml()
-                    this.AddMod (name, file.ProjectId)
-                    name
+                    let fileUrl = sprintf "%A/files/%i/download" projectResponse.responseUri file.FileId
 
-            let fileUrl = sprintf "%A/files/%i/download" projectResponse.responseUri file.FileId
-
-            using(Request.create Get (Uri fileUrl) |> getResponse |> run) (fun r ->
-                let fileName = Uri.UnescapeDataString(r.responseUri.Segments |> Array.last)
+                    using(Request.create Get (Uri fileUrl) |> getResponse |> run) (fun r ->
+                        let fileName = Uri.UnescapeDataString(r.responseUri.Segments |> Array.last)
                 
-                saveToCache file.ProjectId modName file.FileId fileName
+                        saveToCache file.ProjectId modName file.FileId fileName
 
-                let modsDirectory = location @@ "mods"
-                Directory.CreateDirectory(modsDirectory) |> ignore
+                        Directory.CreateDirectory(modsDirectory) |> ignore
 
-                using(new FileStream(modsDirectory @@ fileName, FileMode.Create)) (fun s -> 
-                    r.body.CopyTo(s)
-                    s.Close()
-                )
-            )
+                        using(new FileStream(modsDirectory @@ fileName, FileMode.Create)) (fun s -> 
+                            r.body.CopyTo(s)
+                            s.Close()
+                        )
+                    )
 
-            this.UpdateProgress file.ProjectId
-        }
+                    this.UpdateProgress file.ProjectId
+                with
+                | :? Exception as exn ->
+                    let a = exn
+                    ()
+            }
 
     member this.DownloadZip =
         this.ProgressBarState <- Indeterminate

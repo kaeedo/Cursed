@@ -1,6 +1,7 @@
 ﻿namespace Cursed.Base
 
 open System
+open System.Reflection
 open Eto.Forms
 open Eto.Drawing
 
@@ -38,6 +39,7 @@ type MainForm(app: Application) =
         dynamicLayout.Add(modListsDynamicLayout) |> ignore
 
         base.Title <- "Cursed"
+        base.Icon <- Icon.FromResource("icon.ico", Assembly.GetExecutingAssembly())
         base.ClientSize <- new Size(900, 600)
         base.Content <- dynamicLayout
         base.DataContext <- modpack
