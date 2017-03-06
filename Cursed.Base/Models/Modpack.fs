@@ -11,15 +11,25 @@ open Eto.Forms
 open Common
 open ModpackController
 
+module Handler =
+    let myHandler sender (args: UnhandledExceptionEventArgs) =
+        args.ExceptionObject :?> Exception
+
 type Modpack(app: Application) as this =
     inherit NotifyPropertyChanged()
-    do ServicePointManager.DefaultConnectionLimit <- 1000
+    do
+        ServicePointManager.DefaultConnectionLimit <- 1000
+        CacheActor.FileLoop.Post Load
+        async {
+            do! Async.Sleep 1000
+            this.Load
+        } |> Async.Start
 
-    let mutable modpackLink = String.Empty
-    let mutable extractLocation = String.Empty
     let mutable mods = [{ Link = String.Empty; Name = String.Empty; Completed = false; ProjectId = 0 }]
     let mutable modCount = 0
     let mutable progressBarState = Disabled
+    let mutable modpackLink = String.Empty
+    let mutable extractLocation = String.Empty
 
     member this.UpdateModpackLink link =
         this.ModpackLink <- ViewActor.UpdateLoop.PostAndReply (fun reply -> UpdateModpackLink (link, reply))
@@ -38,15 +48,11 @@ type Modpack(app: Application) as this =
     member this.FinishDownload =
         this.ProgressBarState <- ViewActor.UpdateLoop.PostAndReply FinishDownload
 
-    member this.Load =
-        let cache = CacheActor.FileLoop.PostAndReply GetCache
-        this.ModpackLink <- cache.CurseLink
-        this.ExtractLocation <- cache.ModpackLocation
-
     member this.ModpackLink
         with get() = modpackLink
         and private set(value) =
             modpackLink <- value
+            app.Invoke (fun () -> this.OnPropertyChanged <@ this.ModpackLink @>)
 
     member this.ExtractLocation
         with get() = extractLocation
@@ -59,7 +65,7 @@ type Modpack(app: Application) as this =
         and private set(value) =
             mods <- value
             app.Invoke (fun () -> this.OnPropertyChanged <@ this.Mods @>)
-        
+
     member this.ModCount
         with get() = modCount
         and private set(value) =
@@ -72,18 +78,23 @@ type Modpack(app: Application) as this =
             progressBarState <- value
             app.Invoke (fun () -> this.OnPropertyChanged <@ this.ProgressBarState @>)
 
+    member this.Load =
+        let cache = CacheActor.FileLoop.PostAndReply GetCache
+        this.ModpackLink <- cache.CurseLink
+        this.ExtractLocation <- cache.ModpackLocation
+
     member this.DownloadMod location (file: ModpackManifest.File) =
         let saveToCache projectId modName fileId fileName =
             CacheActor.FileLoop.Post <| SaveProject { Id = projectId; Name = modName; Files = [] }
             CacheActor.FileLoop.Post <| SaveMod (projectId, { Id = fileId; FileName = fileName })
-        
+
         let cache = CacheActor.FileLoop.PostAndReply GetCache
-        let cachedMod = 
+        let cachedMod =
             cache.Projects
                 |> List.tryFind (fun p ->
                     p.Id = file.ProjectId
                 )
-            
+
         let modsDirectory = location @@ "mods"
 
         let maybeCopyMod =
@@ -119,7 +130,7 @@ type Modpack(app: Application) as this =
                 let link = projectResponse.responseUri.ToString()
                 let html = HtmlDocument.Load(link)
 
-                let modName = 
+                let modName =
                     match cachedMod with
                     | Some project -> project.Name
                     | None ->
@@ -132,12 +143,12 @@ type Modpack(app: Application) as this =
 
                 using(Request.create Get (Uri fileUrl) |> getResponse |> run) (fun r ->
                     let fileName = Uri.UnescapeDataString(r.responseUri.Segments |> Array.last)
-                
+
                     saveToCache file.ProjectId modName file.FileId fileName
 
                     Directory.CreateDirectory(modsDirectory) |> ignore
 
-                    using(new FileStream(modsDirectory @@ fileName, FileMode.Create)) (fun s -> 
+                    using(new FileStream(modsDirectory @@ fileName, FileMode.Create)) (fun s ->
                         r.body.CopyTo(s)
                         s.Close()
                     )

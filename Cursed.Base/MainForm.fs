@@ -5,51 +5,38 @@ open System.Reflection
 open Eto.Forms
 open Eto.Drawing
 
-type MainForm(app: Application) = 
+type MainForm(app: Application) =
     inherit Form()
     let modpack = new Modpack(app)
 
-    do 
-        CacheActor.FileLoop.Post Load
-        modpack.Load
+    let dynamicLayout =
+        let layout = new DynamicLayout()
+        layout.BeginVertical() |> ignore
+        layout
 
-        let dynamicLayout =
-            let layout = new DynamicLayout()
-            layout.BeginVertical() |> ignore
-            layout
+    let modListsDynamicLayout =
+        let layout = new DynamicLayout()
+        layout.BeginHorizontal() |> ignore
+        layout.Add(MainView.IncompleteModsListBox, Nullable true) |> ignore
+        layout.Add(MainView.CompleteModsListBox, Nullable true) |> ignore
+        layout
 
-        let modListsDynamicLayout =
-            let layout = new DynamicLayout()
-            layout.BeginHorizontal() |> ignore
-            layout.Add(MainView.IncompleteModsListBox, Nullable true) |> ignore
-            layout.Add(MainView.CompleteModsListBox, Nullable true) |> ignore
-            layout
-        
-        let tableLayout =
-            let layout = new TableLayout()
-        
-            layout.Padding <- new Padding(10)
-            layout.Spacing <- new Size(5, 5)
-            layout.Rows.Add(MainView.ExtractLocationRow modpack app)
-            layout.Rows.Add(MainView.UrlInputRow modpack app)
-            layout
+    let tableLayout =
+        let layout = new TableLayout()
 
-        dynamicLayout.Add(tableLayout) |> ignore
-        dynamicLayout.Add(MainView.ProgressBar) |> ignore
-        dynamicLayout.Add(modListsDynamicLayout) |> ignore
+        layout.Padding <- new Padding(10)
+        layout.Spacing <- new Size(5, 5)
+        layout.Rows.Add(MainView.ExtractLocationRow modpack app)
+        layout.Rows.Add(MainView.UrlInputRow modpack app)
+        layout
 
-        base.Title <- "Cursed"
-        base.Icon <- Icon.FromResource("icon.ico", Assembly.GetExecutingAssembly())
-        base.ClientSize <- new Size(900, 600)
-        base.Content <- dynamicLayout
-        base.DataContext <- modpack
-
+    let updateCheck =
         async {
             try
                 let latest, current = UpdateDialogController.Versions |> Async.RunSynchronously
 
                 let cache = CacheActor.FileLoop.PostAndReply GetCache
-                let skipUpdateCheck = 
+                let skipUpdateCheck =
                     let skipVersion = new Version(cache.SkipVersion)
                     skipVersion.CompareTo(latest) = 0
 
@@ -68,4 +55,16 @@ type MainForm(app: Application) =
                     app.MainForm.Title <- sprintf "Cursed - Update check failed"
                 )
         }
-        |> Async.Start
+
+    do
+        dynamicLayout.Add(tableLayout) |> ignore
+        dynamicLayout.Add(MainView.ProgressBar) |> ignore
+        dynamicLayout.Add(modListsDynamicLayout) |> ignore
+
+        base.Title <- "Cursed"
+        base.Icon <- Icon.FromResource("icon.ico", Assembly.GetExecutingAssembly())
+        base.ClientSize <- new Size(900, 600)
+        base.Content <- dynamicLayout
+        base.DataContext <- modpack
+
+        updateCheck |> Async.Start

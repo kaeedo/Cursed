@@ -41,8 +41,16 @@ Target "Pack" (fun _ ->
     let files =
         !! ("*.exe") ++ ("*.dll") ++ ("*.config")
         |> SetBaseDir buildDir
-    
+
     CreateZipOfIncludes (sprintf "Cursed_%s.zip" releaseNotes.AssemblyVersion) "" 0 [ "", files ]
+)
+
+Target "Debug" (fun _ ->
+    ensureDirectory buildDir
+
+    ["./Cursed/Cursed.fsproj"]
+    |> MSBuildDebug buildDir "Build"
+    |> ignore
 )
 
 "Clean"
