@@ -2,14 +2,16 @@
 
 open System
 open System.IO
+open System.Collections
 open Common
 open Hopac
 open HttpFs.Client
 
+open ICSharpCode.SharpZipLib.Core
 open ICSharpCode.SharpZipLib.Zip
 
 module ModpackController =
-    let CreateMultiMcInstance minecraftVersion version name author forge = 
+    let CreateMultiMcInstance minecraftVersion version name author forge =
         [ "InstanceType", "OneSix"
           "IntendedVersion", minecraftVersion
           "LogPrePostOutput", "true"
@@ -26,19 +28,48 @@ module ModpackController =
           "totalTimePlayed", "0" ]
           |> Map.ofSeq
 
-    let UpdateProgressBarAmount previousState = 
+    let UpdateProgressBarAmount previousState =
         let previousProgress =
             match previousState with
             | Progress numberCompleted -> numberCompleted
             | _ -> 0
         ProgressBarState.Progress (previousProgress + 1)
 
+    let private ofType<'a> (source : System.Collections.IEnumerable) : seq<'a> =
+        let resultType = typeof<'a>
+        seq {
+            for item in source do
+                match item with
+                    | null -> ()
+                    | _ ->
+                    if resultType.IsAssignableFrom (item.GetType ())
+                    then
+                        yield (downcast item)
+        }
+
     let ExtractZip location ((zipName: string), (zipLocation: string)) =
         let modpackSubdirectory = zipName.Substring(0, zipName.LastIndexOf('.'))
         let extractLocation = location @@ modpackSubdirectory @@ "minecraft"
-        
-        let fastZip = new FastZip();
-        fastZip.ExtractZip(zipLocation @@ zipName, extractLocation, null)
+
+        use zipFile = new ZipFile(zipLocation @@ zipName)
+
+        ofType<ZipEntry> zipFile
+        |> Seq.iter (fun zf ->
+            try
+                let unzipPath = extractLocation @@ zf.Name
+                let directoryPath = Path.GetDirectoryName(unzipPath)
+
+                if directoryPath.Length > 0 then
+                    Directory.CreateDirectory(directoryPath) |> ignore
+
+                let zipStream = zipFile.GetInputStream(zf)
+                let buffer = Array.create 4096 (new Byte())
+
+                use unzippedFileStream = File.Create(unzipPath)
+                StreamUtils.Copy(zipStream, unzippedFileStream, buffer)
+            with
+            | _ -> ()
+        )
 
         let fileInfo = new FileInfo(zipLocation @@ zipName)
         fileInfo.Delete()
@@ -97,7 +128,7 @@ module ModpackController =
         }
         |> run
 
-    let TryFindMod extractLocation fileName = 
-        let foundMod = 
+    let TryFindMod extractLocation fileName =
+        let foundMod =
             Directory.GetFiles(extractLocation, fileName, SearchOption.AllDirectories)
         foundMod |> Array.tryHead

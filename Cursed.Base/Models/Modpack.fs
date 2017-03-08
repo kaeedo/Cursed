@@ -11,10 +11,6 @@ open Eto.Forms
 open Common
 open ModpackController
 
-module Handler =
-    let myHandler sender (args: UnhandledExceptionEventArgs) =
-        args.ExceptionObject :?> Exception
-
 type Modpack(app: Application) as this =
     inherit NotifyPropertyChanged()
     do
@@ -117,7 +113,7 @@ type Modpack(app: Application) as this =
         match maybeCopyMod with
         | Some copyModLocation ->
             job {
-                 File.Copy(copyModLocation, modsDirectory @@ Path.GetFileName(copyModLocation), true)
+                 File.Move(copyModLocation, modsDirectory @@ Path.GetFileName(copyModLocation))
                  this.UpdateProgress file.ProjectId
             }
         | None ->
