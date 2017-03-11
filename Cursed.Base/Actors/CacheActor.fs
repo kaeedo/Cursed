@@ -32,7 +32,7 @@ module CacheActor =
 
                     match message with
                     | SaveProject project ->
-                        let cachedProject = 
+                        let cachedProject =
                             oldState.Projects
                             |> List.tryFind (fun p ->
                                 p.Id = project.Id
@@ -45,7 +45,6 @@ module CacheActor =
                                 let projects = project :: oldState.Projects
                                 { oldState with Projects = projects }
                             return! messageLoop newState
-
                     | SaveMod (projectId, modFile) ->
                         let project =
                             oldState.Projects
@@ -71,11 +70,19 @@ module CacheActor =
                                 )
                             { oldState with Projects = projects }
 
-                        File.WriteAllText(cacheFileLocation, JsonConvert.SerializeObject(newState), Encoding.UTF8) 
+                        File.WriteAllText(cacheFileLocation, JsonConvert.SerializeObject(newState), Encoding.UTF8)
                         return! messageLoop newState
                     | SaveVersionSkip version ->
                         let newState = { oldState with SkipVersion = version }
-                        File.WriteAllText(cacheFileLocation, JsonConvert.SerializeObject(newState), Encoding.UTF8) 
+                        File.WriteAllText(cacheFileLocation, JsonConvert.SerializeObject(newState), Encoding.UTF8)
+                        return! messageLoop newState
+                    | SaveModpackLink link ->
+                        let newState = { oldState with CurseLink = link }
+                        File.WriteAllText(cacheFileLocation, JsonConvert.SerializeObject(newState), Encoding.UTF8)
+                        return! messageLoop newState
+                    | SaveModpackLocation location ->
+                        let newState = { oldState with ModpackLocation = location }
+                        File.WriteAllText(cacheFileLocation, JsonConvert.SerializeObject(newState), Encoding.UTF8)
                         return! messageLoop newState
                     | GetCache reply ->
                         reply.Reply oldState
@@ -89,8 +96,8 @@ module CacheActor =
                                 let cache = JsonConvert.DeserializeObject<Cache>(cacheFile)
                                 match box cache with
                                 | null ->
-                                    let newCache = { Projects = []; SkipVersion = "0.0.0" }
-                                    File.WriteAllText(cacheFileLocation, JsonConvert.SerializeObject(newCache), Encoding.UTF8) 
+                                    let newCache = { Projects = []; SkipVersion = "0.0.0"; CurseLink = String.Empty; ModpackLocation = String.Empty }
+                                    File.WriteAllText(cacheFileLocation, JsonConvert.SerializeObject(newCache), Encoding.UTF8)
                                     newCache
                                 | _ ->
                                     cache
@@ -98,21 +105,21 @@ module CacheActor =
                             | _ ->
                                 let projects = JsonConvert.DeserializeObject<List<Project>>(cacheFile)
                                 if isNull projects then
-                                    let migratedCache = { Projects = []; SkipVersion = "0.0.0" }
-                                    File.WriteAllText(cacheFileLocation, JsonConvert.SerializeObject(migratedCache), Encoding.UTF8) 
+                                    let migratedCache = { Projects = []; SkipVersion = "0.0.0"; CurseLink = String.Empty; ModpackLocation = String.Empty}
+                                    File.WriteAllText(cacheFileLocation, JsonConvert.SerializeObject(migratedCache), Encoding.UTF8)
                                     migratedCache
                                 else
-                                    let migratedCache = { Projects = projects |> List.ofSeq; SkipVersion = "0.0.0" }
-                                    File.WriteAllText(cacheFileLocation, JsonConvert.SerializeObject(migratedCache), Encoding.UTF8) 
+                                    let migratedCache = { Projects = projects |> List.ofSeq; SkipVersion = "0.0.0"; CurseLink = String.Empty; ModpackLocation = String.Empty }
+                                    File.WriteAllText(cacheFileLocation, JsonConvert.SerializeObject(migratedCache), Encoding.UTF8)
                                     migratedCache
-        
+
                         return! messageLoop getCache
                     | FileReplyMessage.Restart ->
-                        return! messageLoop { Projects = []; SkipVersion = "0.0.0" }
+                        return! messageLoop { Projects = []; SkipVersion = "0.0.0"; CurseLink = String.Empty; ModpackLocation = String.Empty }
 
                     return! messageLoop oldState
                 }
 
-            messageLoop { Projects = []; SkipVersion = "0.0.0" }
+            messageLoop { Projects = []; SkipVersion = "0.0.0"; CurseLink = String.Empty; ModpackLocation = String.Empty }
 
         MailboxProcessor.Start(inboxHandler)

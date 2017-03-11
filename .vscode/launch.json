@@ -2,11 +2,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "preLaunchTask": "sh",
+            "preLaunchTask": "debug",
             "name": "Launch",
             "type": "mono",
             "request": "launch",
-            "program": "${workspaceRoot}/output/Cursed.Desktop.exe",
+            "program": "${workspaceRoot}/build/Cursed.Desktop.exe",
             "args": [],
             "cwd": "${workspaceRoot}",
             "runtimeExecutable": null,

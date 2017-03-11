@@ -5,5 +5,20 @@
     "command": "sh",
     "isShellCommand": true,
     "args": ["./build.sh"],
-    "showOutput": "always"
+    "showOutput": "always",
+    "tasks": [
+        {
+            "taskName": "debug",
+            "args":[
+                "./build.sh debug"
+            ]
+        },
+        {
+            "taskName": "build",
+            "args": [
+                "./build.sh"
+            ],
+            "isBuildCommand": true
+        }
+    ]
 }

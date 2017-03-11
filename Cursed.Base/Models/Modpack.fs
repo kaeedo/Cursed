@@ -13,13 +13,19 @@ open ModpackController
 
 type Modpack(app: Application) as this =
     inherit NotifyPropertyChanged()
-    do ServicePointManager.DefaultConnectionLimit <- 1000
+    do
+        ServicePointManager.DefaultConnectionLimit <- 1000
+        CacheActor.FileLoop.Post Load
+        async {
+            do! Async.Sleep 1000
+            this.Load
+        } |> Async.Start
 
-    let mutable modpackLink = String.Empty
-    let mutable extractLocation = String.Empty
     let mutable mods = [{ Link = String.Empty; Name = String.Empty; Completed = false; ProjectId = 0 }]
     let mutable modCount = 0
     let mutable progressBarState = Disabled
+    let mutable modpackLink = String.Empty
+    let mutable extractLocation = String.Empty
 
     member this.UpdateModpackLink link =
         this.ModpackLink <- ViewActor.UpdateLoop.PostAndReply (fun reply -> UpdateModpackLink (link, reply))
@@ -42,6 +48,7 @@ type Modpack(app: Application) as this =
         with get() = modpackLink
         and private set(value) =
             modpackLink <- value
+            app.Invoke (fun () -> this.OnPropertyChanged <@ this.ModpackLink @>)
 
     member this.ExtractLocation
         with get() = extractLocation
@@ -54,7 +61,7 @@ type Modpack(app: Application) as this =
         and private set(value) =
             mods <- value
             app.Invoke (fun () -> this.OnPropertyChanged <@ this.Mods @>)
-        
+
     member this.ModCount
         with get() = modCount
         and private set(value) =
@@ -67,58 +74,84 @@ type Modpack(app: Application) as this =
             progressBarState <- value
             app.Invoke (fun () -> this.OnPropertyChanged <@ this.ProgressBarState @>)
 
+    member this.Load =
+        let cache = CacheActor.FileLoop.PostAndReply GetCache
+        this.ModpackLink <- cache.CurseLink
+        this.ExtractLocation <- cache.ModpackLocation
+
     member this.DownloadMod location (file: ModpackManifest.File) =
         let saveToCache projectId modName fileId fileName =
             CacheActor.FileLoop.Post <| SaveProject { Id = projectId; Name = modName; Files = [] }
             CacheActor.FileLoop.Post <| SaveMod (projectId, { Id = fileId; FileName = fileName })
 
-        let cachedModName =
-            let cache = CacheActor.FileLoop.PostAndReply GetCache
+        let cache = CacheActor.FileLoop.PostAndReply GetCache
+        let cachedMod =
             cache.Projects
-            |> List.tryFind (fun p ->
-                p.Id = file.ProjectId
-            )
-
-        match cachedModName with 
-        | Some project -> this.AddMod (project.Name, project.Id)
-        | None -> ()
-
-        job {
-            let projectResponse =
-                Request.create Get (Uri <| sprintf "http://minecraft.curseforge.com/projects/%i" file.ProjectId)
-                |> getResponse
-                |> run
-
-            let link = projectResponse.responseUri.ToString()
-            let html = HtmlDocument.Load(link)
-
-            let modName = 
-                match cachedModName with
-                | Some project -> project.Name
-                | None ->
-                    let modNameHtml = (html.CssSelect("h1.project-title > a > span")).[0].InnerText
-                    let name = modNameHtml()
-                    this.AddMod (name, file.ProjectId)
-                    name
-
-            let fileUrl = sprintf "%A/files/%i/download" projectResponse.responseUri file.FileId
-
-            using(Request.create Get (Uri fileUrl) |> getResponse |> run) (fun r ->
-                let fileName = Uri.UnescapeDataString(r.responseUri.Segments |> Array.last)
-                
-                saveToCache file.ProjectId modName file.FileId fileName
-
-                let modsDirectory = location @@ "mods"
-                Directory.CreateDirectory(modsDirectory) |> ignore
-
-                using(new FileStream(modsDirectory @@ fileName, FileMode.Create)) (fun s -> 
-                    r.body.CopyTo(s)
-                    s.Close()
+                |> List.tryFind (fun p ->
+                    p.Id = file.ProjectId
                 )
-            )
 
-            this.UpdateProgress file.ProjectId
-        }
+        let modsDirectory = location @@ "mods"
+
+        let maybeCopyMod =
+            maybe {
+                let! cachedMod = cachedMod
+
+                do! Some (this.AddMod (cachedMod.Name, cachedMod.Id))
+
+                let! file =
+                    cachedMod.Files
+                    |> List.tryFind (fun f ->
+                        f.Id = file.FileId
+                    )
+
+                let! tryFindModLocation = TryFindMod this.ExtractLocation file.FileName
+
+                return tryFindModLocation
+            }
+
+        match maybeCopyMod with
+        | Some copyModLocation ->
+            job {
+                 File.Move(copyModLocation, modsDirectory @@ Path.GetFileName(copyModLocation))
+                 this.UpdateProgress file.ProjectId
+            }
+        | None ->
+            job {
+                let projectResponse =
+                    Request.create Get (Uri <| sprintf "http://minecraft.curseforge.com/projects/%i" file.ProjectId)
+                    |> getResponse
+                    |> run
+
+                let link = projectResponse.responseUri.ToString()
+                let html = HtmlDocument.Load(link)
+
+                let modName =
+                    match cachedMod with
+                    | Some project -> project.Name
+                    | None ->
+                        let modNameHtml = (html.CssSelect("h1.project-title > a > span")).[0].InnerText
+                        let name = modNameHtml()
+                        this.AddMod (name, file.ProjectId)
+                        name
+
+                let fileUrl = sprintf "%A/files/%i/download" projectResponse.responseUri file.FileId
+
+                using(Request.create Get (Uri fileUrl) |> getResponse |> run) (fun r ->
+                    let fileName = Uri.UnescapeDataString(r.responseUri.Segments |> Array.last)
+
+                    saveToCache file.ProjectId modName file.FileId fileName
+
+                    Directory.CreateDirectory(modsDirectory) |> ignore
+
+                    using(new FileStream(modsDirectory @@ fileName, FileMode.Create)) (fun s ->
+                        r.body.CopyTo(s)
+                        s.Close()
+                    )
+                )
+
+                this.UpdateProgress file.ProjectId
+            }
 
     member this.DownloadZip =
         this.ProgressBarState <- Indeterminate
