@@ -1,7 +1,7 @@
 ﻿## New in 1.4.0
-* Load previously used download location and Curse link
+* Load previously used download location and Curseforge link
 * Copy existing mods from file system instead of redownloading them
-* Add icon
+* Add fancy icon
 
 ## New in 1.3.1 (Release 2017/02/11)
 * Minor bugfix ಠ_ಠ
