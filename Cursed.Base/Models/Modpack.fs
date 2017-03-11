@@ -113,7 +113,7 @@ type Modpack(app: Application) as this =
         match maybeCopyMod with
         | Some copyModLocation ->
             job {
-                 File.Move(copyModLocation, modsDirectory @@ Path.GetFileName(copyModLocation))
+                 File.Copy(copyModLocation, modsDirectory @@ Path.GetFileName(copyModLocation), false)
                  this.UpdateProgress file.ProjectId
             }
         | None ->

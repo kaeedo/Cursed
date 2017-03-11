@@ -1,4 +1,7 @@
-﻿## New in 1.4.0
+﻿## New in 1.4.1
+* Fix "bug" where existing mods were moved insead of copied because I'm an absolute idiot
+
+## New in 1.4.0
 * Load previously used download location and Curseforge link
 * Copy existing mods from file system instead of redownloading them
 * Add fancy icon
