@@ -51,24 +51,24 @@ module ModpackController =
         let modpackSubdirectory = zipName.Substring(0, zipName.LastIndexOf('.'))
         let extractLocation = location @@ modpackSubdirectory @@ "minecraft"
 
-        use zipFile = new ZipFile(zipLocation @@ zipName)
+        using (new ZipFile(zipLocation @@ zipName)) (fun zipFile ->
+            ofType<ZipEntry> zipFile
+            |> Seq.iter (fun zf ->
+                try
+                    let unzipPath = extractLocation @@ zf.Name
+                    let directoryPath = Path.GetDirectoryName(unzipPath)
 
-        ofType<ZipEntry> zipFile
-        |> Seq.iter (fun zf ->
-            try
-                let unzipPath = extractLocation @@ zf.Name
-                let directoryPath = Path.GetDirectoryName(unzipPath)
+                    if directoryPath.Length > 0 then
+                        Directory.CreateDirectory(directoryPath) |> ignore
 
-                if directoryPath.Length > 0 then
-                    Directory.CreateDirectory(directoryPath) |> ignore
+                    let zipStream = zipFile.GetInputStream(zf)
+                    let buffer = Array.create 4096 (new Byte())
 
-                let zipStream = zipFile.GetInputStream(zf)
-                let buffer = Array.create 4096 (new Byte())
-
-                use unzippedFileStream = File.Create(unzipPath)
-                StreamUtils.Copy(zipStream, unzippedFileStream, buffer)
-            with
-            | _ -> ()
+                    use unzippedFileStream = File.Create(unzipPath)
+                    StreamUtils.Copy(zipStream, unzippedFileStream, buffer)
+                with
+                | _ -> ()
+            )
         )
 
         let fileInfo = new FileInfo(zipLocation @@ zipName)
