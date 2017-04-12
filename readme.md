@@ -18,7 +18,7 @@ Extract the contents anywhere, and Double click Cursed.Desktop.exe
 ## Linux
 Requires Mono. Run `mono Cursed.Desktop.exe` Tested on Xubuntu after installing the following packages:
 * mono-devel
-* gtk-sharp3
+* gtk-sharp3 (gtk-sharp-3 on Arch)
 
 ## Mac
 I can't test this on a Mac, as I don't have one. But it should theoretically work without any code changes. 
