@@ -1,8 +1,13 @@
 # Cursed
 ## The Curse Modpack Downloader
 
-Download entire modpacks from Curse site without needing the Curse launcher. All you need is the project site URL from a modpack
-e.g. https://minecraft.curseforge.com/projects/all-the-mods
+Download entire modpacks from Curse site without needing the Curse launcher. All you need is the project site URL from a modpack. Make sure it is not the curse.com site (mods.curse.com/modpacks), but the curseforge.com site
+e.g. 
+https://minecraft.curseforge.com/projects/all-the-mods
+
+Additionally, when using one of the FTB packs, the URL will look something like this
+e.g.
+https://www.feed-the-beast.com/projects/ftb-presents-skyfactory-2-5
 
 This application is written using Eto.Forms, an open source Cross Platform UI library https://github.com/picoe/Eto
 
