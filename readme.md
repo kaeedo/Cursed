@@ -22,7 +22,7 @@ Extract the contents anywhere, and Double click Cursed.Desktop.exe
 
 ## Linux
 Requires Mono. Run `mono Cursed.Desktop.exe` Tested on Xubuntu after installing the following packages:
-* mono-devel
+* mono-devel (monodevelop on Arch)
 * gtk-sharp3 (gtk-sharp-3 on Arch)
 
 ## Mac
