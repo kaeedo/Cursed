@@ -1,3 +1,7 @@
+# Use MultiMC directly
+[https://www.reddit.com/r/feedthebeast/comments/6yhd90/how_to_download_curse_modpacks_with_only_multimc/](How to download curse modpacks through multimc)
+# No Longer Maintained
+
 # Cursed
 ## The Curse Modpack Downloader
 
